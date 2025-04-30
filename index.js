@@ -5,6 +5,7 @@ const PORT = 3000;
 const router = require('./router/router');
 const cors = require('cors');
 app.use('/upload/images', express.static('upload/images'));
+app.use('/upload/images', cors(), express.static('upload/images'));
 
 app.use(cors({
     origin: '*',

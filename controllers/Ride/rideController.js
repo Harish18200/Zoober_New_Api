@@ -51,7 +51,6 @@ exports.rideSignUp = async (req, res) => {
         });
     }
 };
-
 exports.rideLogin = async (req, res) => {
     const { mobile, password } = req.body;
     const mobileRegex = /^\d{10}$/;
@@ -89,7 +88,8 @@ exports.rideLogin = async (req, res) => {
             token,
             user: {
                 id: rideLogin.id,
-                mobile: rideLogin.mobile,
+                mobile1: rideLogin.mobile,
+                firstname:rideLogin.firstname
             }
         });
 
@@ -98,17 +98,25 @@ exports.rideLogin = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
-
 exports.addVehicle = async (req, res) => {
     const { ride_id, brand, model, model_year, license_plate, color, booking_type } = req.body;
+
     if (!ride_id || !brand || !model || !model_year || !license_plate || !booking_type) {
         return res.status(400).json({
             success: false,
             message: 'rideId, brand, model, model_year, license_plate, and booking_type are required.'
         });
     }
+
     try {
+        const existingVehicle = await Vehicle.findOne({
+            where: {
+              ride_id,
+              status: 1
+            }
+          });
+        const status = existingVehicle ? null : 1;
+
         const newVehicle = new Vehicle({
             ride_id,
             brand,
@@ -116,7 +124,8 @@ exports.addVehicle = async (req, res) => {
             model_year,
             license_plate,
             color,
-            booking_type
+            booking_type,
+            status
         });
 
         const savedVehicle = await newVehicle.save();
@@ -132,6 +141,55 @@ exports.addVehicle = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error while adding vehicle'
+        });
+    }
+};
+exports.activeVehicle = async (req, res) => {
+    const { ride_id, id } = req.body;
+
+    if (!ride_id || !id) {
+        return res.status(400).json({
+            success: false,
+            message: 'rideId and id are required.'
+        });
+    }
+    try {
+        await Vehicle.update(
+            { status: null },
+            {
+                where: {
+                    ride_id: ride_id,
+                    status: 1
+                }
+            }
+        );
+        const [updatedRows] = await Vehicle.update(
+            { status: 1 },
+            {
+                where: {
+                    ride_id: ride_id,
+                    id: id
+                }
+            }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Vehicle not found or not updated.'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Vehicle activated successfully.'
+        });
+
+    } catch (error) {
+        console.error('Error activating vehicle:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while activating vehicle.'
         });
     }
 };
@@ -164,7 +222,6 @@ exports.rideVehicleList = async (req, res) => {
         });
     }
 };
-
 exports.addDocument = async (req, res) => {
     const { ride_id, photo, card_number, expired_date, name } = req.body;
     if (!ride_id || !card_number) {
@@ -197,9 +254,38 @@ exports.addDocument = async (req, res) => {
     }
 };
 
+exports.listDocument = async (req, res) => {
+    const { ride_id } = req.body;
 
+    if (!ride_id) {
+        return res.status(400).json({
+            success: false,
+            message: 'ride_id is required.'
+        });
+    }
 
+    try {
+        const fetchDocument = await Document.findAll({
+            where: {
+                ride_id: ride_id,
+                deleted_at: null
+            }
+        });
 
+        return res.status(200).json({
+            success: true,
+            message: 'Documents fetched successfully',
+            data: fetchDocument
+        });
+
+    } catch (error) {
+        console.error('Error fetching documents:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while fetching documents'
+        });
+    }
+};
 
 exports.getOrderDetailById = async (req, res) => {
     const { id } = req.body;

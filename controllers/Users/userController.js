@@ -86,13 +86,12 @@ exports.fetchUserDetails = async (req, res) => {
                 deleted_at: null
             }
         });
-
         console.log('foundUser:', foundUser);
 
         if (!foundUser) {
             return res.status(404).json({ success: false, message: 'User not found or marked as deleted.' });
         }
-
+        foundUser.profile = `https://zoober.ackrock.com/upload/images/${foundUser.profile}`;
         return res.status(200).json({ success: true, user: foundUser });
     } catch (error) {
         console.error('Error fetching user details:', error);
@@ -102,17 +101,33 @@ exports.fetchUserDetails = async (req, res) => {
 
 exports.userProfileUpdate = async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: 'No image uploaded' });
+        const userId = req.body.userId;
+        const firstname = req.body.firstname;
+        const lastname = req.body.lastname;
+        const email = req.body.email;
+        const mobile = req.body.mobile;
+        const gender = req.body.gender;
+        const dob = req.body.dob;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
         }
 
-        const imageUrl = req.file.filename;
-        const userId = 21;
+        const updateData = {
+            firstname,
+            lastname,
+            email,
+            mobile,
+            gender,
+            dob
+        };
+        if (req.file && req.file.filename) {
+            updateData.profile = req.file.filename;
+        }
 
-        const [updated] = await user.update(
-            { profile: imageUrl },
-            { where: { id: userId } }
-        );
+        const [updated] = await user.update(updateData, {
+            where: { id: userId }
+        });
 
         if (!updated) {
             return res.status(404).json({ success: false, message: 'User not found or not updated' });
@@ -120,15 +135,15 @@ exports.userProfileUpdate = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'Image uploaded and user profile updated successfully',
-            imageUrl
+            message: 'User profile updated successfully',
+            data: updateData
         });
+
     } catch (error) {
-        console.error('Image upload error:', error);
+        console.error('Profile update error:', error);
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
 
 
 exports.userLogin = async (req, res) => {
