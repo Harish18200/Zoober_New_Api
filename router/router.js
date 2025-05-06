@@ -13,46 +13,44 @@ const document  = require('../Middleware/document');
 
 
 router.post('/addFarePriceRule', adminController.addFarePriceRule);
+router.post('/supports', adminController.supports);
 
-
-
-
-router.post('/userLogin', userController.userLogin);  // Done
-router.post('/userSignUp', userController.userSignUp);  // Done
-router.post('/rideSignUp', upload.single('profile'),rideController.rideSignUp);  // done
-router.post('/rideLogin', rideController.rideLogin);  // done
+router.post('/userLogin', userController.userLogin);  
+router.post('/userSignUp', userController.userSignUp);  
+router.post('/rideSignUp', upload.single('profile'),rideController.rideSignUp);  
+router.post('/rideLogin', rideController.rideLogin);  
 router.post('/addVehicle', verifyRideToken,rideController.addVehicle); 
 router.post('/addOrUpdateRideDetails',rideController.addOrUpdateRideDetails);  
-router.get('/totalRideCount',rideController.totalRideCount);
-
-
-
-
+router.get('/totalActiveRide',rideController.totalActiveRide);
+router.get('/todayTotalRides',rideController.todayTotalRides);
+router.get('/todayRevenue',rideController.todayRevenue);
+router.post('/updateRideStatusByRideId',rideController.updateRideStatusByRideId);  
+router.get('/totalRidesDetails',rideController.totalRidesDetails);  
 
 router.post('/activeVehicle', verifyRideToken,rideController.activeVehicle);
-router.post('/rideVehicleList', verifyRideToken,rideController.rideVehicleList);   // done 
-router.post('/addDocument', verifyRideToken,document.single('document'),rideController.addDocument); // done
-router.post('/listDocument', verifyRideToken,rideController.listDocument); // done 
-router.post('/getOrderDetailById', verifyRideToken,rideController.getOrderDetailById); // done 
-router.post('/deviceLocation', verifyToken, userController.deviceLocation);  // Done
-router.post('/userOrderBooking', userController.userOrderBooking);  // Done
-router.get('/pickupTypes', verifyToken, userController.pickupTypes); // Done
-router.get('/UserRideTypes', verifyToken, userController.UserRideTypes);   // Done
-router.get('/suggestions', verifyToken, userController.suggestions);  // Done
+router.post('/rideVehicleList', verifyRideToken,rideController.rideVehicleList);   
+router.post('/addDocument', verifyRideToken,document.single('document'),rideController.addDocument); 
+router.post('/listDocument', verifyRideToken,rideController.listDocument); 
+router.post('/getOrderDetailById', verifyRideToken,rideController.getOrderDetailById); 
+router.post('/deviceLocation', verifyToken, userController.deviceLocation);  
+router.post('/userOrderBooking', userController.userOrderBooking);  
+router.get('/pickupTypes', verifyToken, userController.pickupTypes); 
+router.get('/UserRideTypes', verifyToken, userController.UserRideTypes);   
+router.get('/suggestions', verifyToken, userController.suggestions);  
 router.post('/userProfileUpdate', verifyToken, upload.single('profile'), userController.userProfileUpdate); 
-router.post('/deleteAccount', verifyToken, userController.deleteAccount); // done
-router.post('/logout', verifyToken, userController.logout); // pending
-router.post('/favouriteList', verifyToken, userController.favouriteList);  // done
-router.post('/addFavourite', verifyToken, userController.addFavourite);  // done
-router.post('/editFavourite', verifyToken, userController.editFavourite); // done
-router.post('/deleteFavourite', verifyToken, userController.deleteFavourite); // done
-router.post('/fetchUserDetails', verifyToken, userController.fetchUserDetails);  // done
+router.post('/deleteAccount', verifyToken, userController.deleteAccount); 
+router.post('/logout', verifyToken, userController.logout);
+router.post('/favouriteList', verifyToken, userController.favouriteList);  
+router.post('/addFavourite', verifyToken, userController.addFavourite);  
+router.post('/editFavourite', verifyToken, userController.editFavourite); 
+router.post('/deleteFavourite', verifyToken, userController.deleteFavourite); 
+router.post('/fetchUserDetails', verifyToken, userController.fetchUserDetails);  
 router.post('/userRideHistory', verifyToken, userController.userRideHistory);
 router.post('/addUserDetails', verifyToken, userController.addUserDetails);
 router.post('/updateUserDetails', verifyToken, userController.updateUserDetails);
 router.post('/deletedUserDetails', verifyToken, userController.deletedUserDetails);
 router.get('/getAllUsers', verifyToken, userController.getAllUsers);
-router.post('/totalUsersCount', verifyToken, userController.totalUsersCount);
+router.get('/totalUsers',  userController.totalUsers);
 
 module.exports = router;
 

@@ -62,6 +62,10 @@ const OrderBookings = sequelize.define('order_bookings', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    order_status: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
     suggestion_id: {
         type: DataTypes.INTEGER,
         allowNull: true,

@@ -6,6 +6,7 @@ const OrderBooking = require('../../models/OrderBookings');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
+const { user } = require('../..');
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ZooberRide';
@@ -58,7 +59,7 @@ exports.rideSignUp = async (req, res) => {
             latitude,
             longitude,
             location,
-            ride_status: ride_status || "active"
+            ride_status: ride_status || "Pending Approval"
         });
 
         res.status(200).json({
@@ -129,14 +130,42 @@ exports.addOrUpdateRideDetails = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-exports.totalRideCount = async (req, res) => {
-    
+
+exports.updateRideStatusByRideId = async (req, res) => {
+    const { rideId, ride_status } = req.body;
+
+    if (!rideId) {
+        return res.status(400).json({ success: false, message: 'RideId is required.' });
+    }
+
+    try {
+
+        const existingRide = await Ride.findOne({ where: { id: rideId } });
+
+       
+        if (existingRide) {
+            await Ride.update(
+                {
+                  ride_status
+                },
+                { where: { id: rideId } }
+            );
+
+          
+        }
+    } catch (error) {
+        console.error('Add/Update Ride Details error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+exports.totalActiveRide = async (req, res) => {
+
     try {
         const totalUsers = await Ride.count({
             where: {
                 deleted_flag: null,
                 deleted_at: null,
-                ride_status:"active"
+                ride_status: "active"
             }
         });
 
@@ -146,6 +175,92 @@ exports.totalRideCount = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
+
+exports.todayTotalRides = async (req, res) => {
+    try {
+        const today = new Date();
+        console.log('today', today);
+
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        console.log('startOfDay', startOfDay);
+        console.log('endOfDay', endOfDay);
+        const todayTotalRides = await OrderBooking.count({
+            where: {
+                deleted_flag: null,
+                deleted_at: null,
+                created_at: {
+                    [Op.lte]: endOfDay
+                  }
+            }
+        });
+
+        return res.status(200).json({ success: true, todayTotalRides });
+    } catch (error) {
+        console.error('Error fetching today\'s rides:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
+exports.todayRevenue = async (req, res) => {
+    try {
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+      
+
+        const todayRevenue = await OrderBooking.sum('amount', {
+            where: {
+                deleted_flag: null,
+                deleted_at: null,
+                created_at: {
+                    [Op.between]: [startOfDay, endOfDay]
+                }
+            }
+        });
+
+        return res.status(200).json({ success: true, todayRevenue: todayRevenue || 0 });
+    } catch (error) {
+        console.error('Error fetching today\'s revenue:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
+exports.totalRidesDetails = async (req, res) => {
+    try {
+      const allOrders = await OrderBooking.findAll({
+        where: {
+          deleted_flag: null,
+          deleted_at: null
+        },
+        // include: [
+        //   {
+        //     model: user,
+        //     required: false,
+        //     where: {
+        //       deleted_flag: null,
+        //       deleted_at: null
+        //     }
+        //   }
+        // ]
+      });
+  
+      return res.status(200).json({
+        success: true,
+        message: 'All order details fetched successfully.',
+        data: allOrders
+      });
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Server error',
+        error: error.message
+      });
+    }
+  };
+  
+
 exports.rideLogin = async (req, res) => {
     const { mobile, password } = req.body;
     const mobileRegex = /^\d{10}$/;

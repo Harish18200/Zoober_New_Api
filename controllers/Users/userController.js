@@ -141,18 +141,12 @@ exports.getAllUsers = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
-exports.totalUsersCount = async (req, res) => {
-    const { userId } = req.body;
-    if (!userId) {
-        return res.status(400).json({
-            success: false,
-            message: 'userId is required.',
-        });
-    }
+exports.totalUsers = async (req, res) => {
+   
     try {
         const totalUsers = await OrderDetail.count({
             where: {
-                id: userId,
+               
                 deleted_flag: null,
                 deleted_at: null
             }
@@ -621,7 +615,8 @@ exports.userOrderBooking = async (req, res) => {
       pickup_start_datetime,
       pickup_location,
       drop_location,
-      suggestion_id
+      suggestion_id,
+      order_status
     } = req.body;
 
     const requiredFields = {
@@ -673,7 +668,9 @@ exports.userOrderBooking = async (req, res) => {
         pickup_start_datetime,
         pickup_location,
         drop_location,
-        suggestion_id
+        suggestion_id,
+        order_status: order_status || "In Progress",
+
       });
   
       return res.status(201).json({

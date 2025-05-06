@@ -5,18 +5,24 @@ const app = express();
 const PORT = 3000;
 const router = require('./router/router');
 const cors = require('cors');
-const user = require('./models/User');
+const User = require('./models/User'); 
 const UserDetails = require('./models/UserDetails');
+const OrderBooking = require('./models/OrderBookings');
 
 
 
-user.hasOne(UserDetails, { foreignKey: 'user_uid', sourceKey: 'user_uid' });
-UserDetails.belongsTo(user, { foreignKey: 'user_uid', targetKey: 'user_uid' });
 
+
+User.hasOne(UserDetails, { foreignKey: 'user_uid', sourceKey: 'user_uid' });
+UserDetails.belongsTo(User, { foreignKey: 'user_uid', targetKey: 'user_uid' });
+
+OrderBooking.belongsTo(User, { foreignKey: 'user_uid' }); 
+User.hasMany(OrderBooking, { foreignKey: 'user_uid' });
 
 module.exports = {
-    user,
-    UserDetails,
+  User,
+  UserDetails,
+  OrderBooking
 };
 
 app.use('/upload/images', express.static('upload/images'));
@@ -36,7 +42,7 @@ app.use("/api", router);
 sequelize.sync()
     .then(() => {
         console.log('Database synced');
-        app.listen(PORT, '0.0.0.0',() => {
+        app.listen(PORT, () => {
             console.log('Server is running on http://192.168.118.177:${PORT}');
         });
     })
