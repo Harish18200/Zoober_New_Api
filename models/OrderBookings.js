@@ -1,74 +1,75 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const Ride = sequelize.define('rides', {
+const OrderBookings = sequelize.define('order_bookings', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    ride_uid: {
+    user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    user_uid: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    firstname: {
+    pickup_type_id: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    lastname: {
+    user_ride_type_id: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-
-    mobile: {
+    distance: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    }, pickup_latitude: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    profile: {
+    pickup_longitude: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    email: {
+    drop_latitude: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    gender: {
+    drop_longitude: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    status: {
+    amount: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    ride_status: {
+    pickup_start_datetime: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    pickup_location: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    dob: {
+    drop_location: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    latitude: {
+    duration: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    location: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    longitude: {
-        type: DataTypes.TEXT,
+    suggestion_id: {
+        type: DataTypes.INTEGER,
         allowNull: true,
     },
     deleted_flag: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-
     created_at: {
         type: DataTypes.DATE,
         allowNull: true,
@@ -80,13 +81,14 @@ const Ride = sequelize.define('rides', {
         defaultValue: DataTypes.NOW
     },
     deleted_at: {
-        type: DataTypes.DATE,
+        type: DataTypes.NOW,
         allowNull: true,
 
     },
+
 }, {
-    tableName: 'rides',
+    tableName: 'order_bookings',
     timestamps: false,
 });
 
-module.exports = Ride;
+module.exports = OrderBookings;

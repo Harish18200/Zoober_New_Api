@@ -1,73 +1,48 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const Ride = sequelize.define('rides', {
+const PricingRules = sequelize.define('pricing_rules', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    ride_uid: {
+    base_price: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    firstname: {
+    price_per_km: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    lastname: {
+    price_per_minute: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
 
-    mobile: {
+    minimum_fare: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    profile: {
+    cancellation_fee: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    email: {
+    platform_fee: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    gender: {
+    max_wait_time: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    status: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    ride_status: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    dob: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    latitude: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    location: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    longitude: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
+  
+    
     deleted_flag: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
+  
 
     created_at: {
         type: DataTypes.DATE,
@@ -85,8 +60,12 @@ const Ride = sequelize.define('rides', {
 
     },
 }, {
-    tableName: 'rides',
+    tableName: 'pricing_rules',
     timestamps: false,
 });
 
-module.exports = Ride;
+
+
+
+
+module.exports = PricingRules;

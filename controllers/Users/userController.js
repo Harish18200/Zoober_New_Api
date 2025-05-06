@@ -1,6 +1,7 @@
 const user = require('../../models/User');
+const UserDetails = require('../../models/UserDetails');
 const UserLocation = require('../../models/UserLocation');
-const OrderDetail = require('../../models/OrderDetail');
+const OrderDetail = require('../../models/OrderBookings');
 const Suggestion = require('../../models/Suggestion');
 const UserRideType = require('../../models/UserRideType');
 const PickupType = require('../../models/PickupType');
@@ -9,12 +10,12 @@ const moment = require('moment');
 const Favourite = require('../../models/Favourite');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
-
-
-const JWT_SECRET = process.env.JWT_SECRET || 'ZooberUser';
+const { v4: uuidv4 } = require('uuid');
+const PricingRules = require('../../models/PricingRules');
+const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.userSignUp = async (req, res) => {
-    const { mobile, email, password, firstname, lastname, gender, dob } = req.body;
+    const { mobile, email, password, firstname, lastname, gender, dob, city, user_status } = req.body;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
         return res.status(400).json({ success: false, message: 'Invalid email format.' });
@@ -43,15 +44,18 @@ exports.userSignUp = async (req, res) => {
 
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
-
+        const user_uid = uuidv4();
         const newUser = await user.create({
             mobile,
             email,
+            user_uid,
             password: hashedPassword,
             firstname,
             lastname,
             gender,
-            dob
+            dob,
+            city: city || null,
+            user_status: user_status || "active",
         });
 
         return res.status(201).json({
@@ -84,7 +88,17 @@ exports.fetchUserDetails = async (req, res) => {
                 id: userId,
                 deleted_flag: null,
                 deleted_at: null
-            }
+            },
+            include: [
+                {
+                    model: UserDetails,
+                    required: false, 
+                    where: {
+                        deleted_flag: null,
+                        deleted_at: null
+                    }
+                }
+            ]
         });
         console.log('foundUser:', foundUser);
 
@@ -98,7 +112,58 @@ exports.fetchUserDetails = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+exports.getAllUsers = async (req, res) => {
+    try {
+        const foundUsers = await user.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null
+            },
+            include: [
+                {
+                    model: UserDetails,
+                    required: false, 
+                    where: {
+                        deleted_flag: null,
+                        deleted_at: null
+                    }
+                }
+            ]
+        });
 
+        if (!foundUsers || foundUsers.length === 0) {
+            return res.status(404).json({ success: false, message: 'No users found or all marked as deleted.' });
+        }
+
+        return res.status(200).json({ success: true, users: foundUsers });
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+exports.totalUsersCount = async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) {
+        return res.status(400).json({
+            success: false,
+            message: 'userId is required.',
+        });
+    }
+    try {
+        const totalUsers = await OrderDetail.count({
+            where: {
+                id: userId,
+                deleted_flag: null,
+                deleted_at: null
+            }
+        });
+
+        return res.status(200).json({ success: true, totalUsers });
+    } catch (error) {
+        console.error('Error fetching user count:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
 exports.userProfileUpdate = async (req, res) => {
     try {
         const userId = req.body.userId;
@@ -108,7 +173,9 @@ exports.userProfileUpdate = async (req, res) => {
         const mobile = req.body.mobile;
         const gender = req.body.gender;
         const dob = req.body.dob;
-
+        const city = req.body.city;
+        const user_status = req.body.user_status;
+        // console.log('check:', userId,firstname,lastname,email,mobile,gender,dob);
         if (!userId) {
             return res.status(400).json({ success: false, message: 'userId is required' });
         }
@@ -119,8 +186,11 @@ exports.userProfileUpdate = async (req, res) => {
             email,
             mobile,
             gender,
-            dob
+            dob,
+            city,
+            user_status
         };
+
         if (req.file && req.file.filename) {
             updateData.profile = req.file.filename;
         }
@@ -144,8 +214,95 @@ exports.userProfileUpdate = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+exports.addUserDetails = async (req, res) => {
+    try {
+        const { userId, user_uid, rating, wallet } = req.body;
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+        const newUserDetails = await UserDetails.create({
+            id: userId,      
+            user_uid,
+            rating ,
+            wallet
+        });
 
+        return res.status(201).json({
+            success: true,
+            message: 'User details created successfully',
+            data: newUserDetails
+        });
 
+    } catch (error) {
+        console.error('Profile creation error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+exports.updateUserDetails = async (req, res) => {
+    try {
+        const { userId, user_uid, rating, wallet } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+
+        const updateData = {
+            user_uid,
+            rating,
+            wallet
+        };
+
+        const [updated] = await UserDetails.update(updateData, {
+            where: { id: userId }
+        });
+
+        if (updated === 0) {
+            return res.status(404).json({ success: false, message: 'User not found or not updated' });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User details updated successfully',
+            data: updateData
+        });
+
+    } catch (error) {
+        console.error('Profile update error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+exports.deletedUserDetails = async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+
+        const updateData = {
+            deleted_flag: 1,
+            deleted_at: new Date()
+        };
+
+        const [updated] = await UserDetails.update(updateData, {
+            where: { id: userId }
+        });
+
+        if (updated === 0) {
+            return res.status(404).json({ success: false, message: 'User not found or already deleted.' });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User deleted successfully (soft delete)',
+            data: { userId, ...updateData }
+        });
+
+    } catch (error) {
+        console.error('Soft delete error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
 exports.userLogin = async (req, res) => {
     const { mobile, password } = req.body;
 
@@ -173,15 +330,13 @@ exports.userLogin = async (req, res) => {
                 message: 'User not found or has been deleted.',
             });
         }
-
         const isMatch = await bcrypt.compare(password, existingUser.password);
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Invalid mobile number or password.' });
         }
-
         const token = jwt.sign(
             { id: existingUser.id, mobile: existingUser.mobile },
-            JWT_SECRET,
+            process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 
@@ -192,7 +347,8 @@ exports.userLogin = async (req, res) => {
             user: {
                 id: existingUser.id,
                 mobile: existingUser.mobile,
-                firstName: existingUser.firstname
+                firstName: existingUser.firstname,
+                user_uid : existingUser.user_uid
             }
         });
 
@@ -292,7 +448,6 @@ exports.deleteAccount = async (req, res) => {
         });
     }
 };
-
 
 exports.logout = async (req, res) => {
     const { userId } = req.body;
@@ -451,64 +606,91 @@ exports.deleteFavourite = async (req, res) => {
     }
 };
 
-exports.storeOrderDetails = async (req, res) => {
+exports.userOrderBooking = async (req, res) => {
     const {
+      user_uid,
+      user_id,
+      pickup_type_id,
+      user_ride_type_id,
+      distance,
+      duration,
+      pickup_latitude,
+      pickup_longitude,
+      drop_latitude,
+      drop_longitude,
+      pickup_start_datetime,
+      pickup_location,
+      drop_location,
+      suggestion_id
+    } = req.body;
+
+    const requiredFields = {
+      user_id,
+      pickup_latitude,
+      pickup_longitude,
+      pickup_location,
+      distance,
+      duration,
+      drop_latitude,
+      drop_longitude,
+      drop_location
+    };
+  
+    for (const [field, value] of Object.entries(requiredFields)) {
+      if (value === undefined || value === null || value === '') {
+        return res.status(400).json({
+          success: false,
+          message: `${field} is required.`
+        });
+      }
+    }
+  
+    try {
+
+      const priceCalculator = await PricingRules.findOne({
+        order: [['id', 'ASC']]
+      });
+  
+      if (!priceCalculator || !priceCalculator.price_per_km) {
+        return res.status(500).json({
+          success: false,
+          message: 'Pricing rules not found or invalid.'
+        });
+      }
+      const amount = parseFloat((priceCalculator.price_per_km * distance).toFixed(2));
+      const newOrder = await OrderDetail.create({
+        user_uid,
         user_id,
         pickup_type_id,
         user_ride_type_id,
         amount,
-        kilometer,
+        distance,
+        duration,
+        pickup_latitude,
+        pickup_longitude,
+        drop_latitude,
+        drop_longitude,
         pickup_start_datetime,
         pickup_location,
         drop_location,
         suggestion_id
-    } = req.body;
-    const requiredFields = {
-        user_id,
-        pickup_type_id,
-        user_ride_type_id,
-        pickup_start_datetime,
-        pickup_location,
-        drop_location,
-        suggestion_id
-    };
-
-    for (const [field, value] of Object.entries(requiredFields)) {
-        if (!value) {
-            return res.status(400).json({
-                success: false,
-                message: `${field} is required.`
-            });
-        }
-    }
-
-    try {
-        const newOrder = await OrderDetail.create({
-            user_id,
-            pickup_type_id,
-            user_ride_type_id,
-            amount,
-            kilometer,
-            pickup_start_datetime,
-            pickup_location,
-            drop_location,
-            suggestion_id
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: 'Order details stored successfully.',
-            data: newOrder
-        });
+      });
+  
+      return res.status(201).json({
+        success: true,
+        message: 'Order details stored successfully.',
+        data: newOrder
+      });
+  
     } catch (error) {
-        console.error('Error storing order details:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Server error. Please try again later.',
-            error: error.message
-        });
+      console.error('Error storing order details:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Server error. Please try again later.',
+        error: error.message
+      });
     }
-};
+  };
 
 exports.pickupTypes = async (req, res) => {
     try {
@@ -577,6 +759,44 @@ exports.suggestions = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching pickup types:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error. Please try again later.',
+            error: error.message
+        });
+    }
+};
+
+
+exports.userRideHistory = async (req, res) => {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({
+            success: false,
+            message: `user_id is required.`
+        });
+    }
+
+    try {
+        const today = new Date();
+
+        const newOrder = await OrderDetail.findAll({
+            where: {
+                user_id: user_id,
+                pickup_start_datetime: {
+                    [Op.lt]: today
+                }
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Ride history fetched successfully.',
+            data: newOrder
+        });
+    } catch (error) {
+        console.error('Error fetching ride history:', error);
         return res.status(500).json({
             success: false,
             message: 'Server error. Please try again later.',

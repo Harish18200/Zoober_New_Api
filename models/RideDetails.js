@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const Ride = sequelize.define('rides', {
+const RideDetails = sequelize.define('ride_details', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -11,52 +11,24 @@ const Ride = sequelize.define('rides', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    firstname: {
+    total_ride: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    lastname: {
+    total_hours: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
 
-    mobile: {
+    total_kilometer: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    profile: {
+    rating: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    email: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    gender: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    status: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    ride_status: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    dob: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    latitude: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    location: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    longitude: {
+    earning: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
@@ -64,11 +36,6 @@ const Ride = sequelize.define('rides', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-
     created_at: {
         type: DataTypes.DATE,
         allowNull: true,
@@ -85,8 +52,8 @@ const Ride = sequelize.define('rides', {
 
     },
 }, {
-    tableName: 'rides',
+    tableName: 'ride_details',
     timestamps: false,
 });
 
-module.exports = Ride;
+module.exports = RideDetails;
