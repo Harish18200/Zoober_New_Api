@@ -1,0 +1,968 @@
+{
+	"info": {
+		"_postman_id": "36664f9c-9c0b-434a-8c6f-be283938ab71",
+		"name": "Zoober_livedomain",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44538260"
+	},
+	"item": [
+		{
+			"name": "userLogin",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile\":\"9876543210\",\r\n    \"password\":\"12345678\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/userLogin",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"userLogin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "userSignUp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/userSignUp",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"userSignUp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deviceLocation",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"31\",\r\n     \"device_location\":\"Trichy\"  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/deviceLocation",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"deviceLocation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "storeOrderDetails",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/storeOrderDetails",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"storeOrderDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteAccount",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"21\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/deleteAccount",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"deleteAccount"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "favouriteList",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDYwMzM2MTksImV4cCI6MTc0NjEyMDAxOX0.0qv-A1Opr-uPxPs2cRmWAUDXC7EzJjfYf5rlaS1o4qs",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"21\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/favouriteList",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"favouriteList"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addFavourite",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"5\",\r\n    \"title\":\"home\",\r\n    \"description\":\"testing\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/addFavourite",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"addFavourite"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "editFavourite",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"5\",\r\n    \"title\":\"New Home\",\r\n    \"description\":\"New Testing\",\r\n    \"id\":30\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/editFavourite",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"editFavourite"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteFavourite",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":30\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/deleteFavourite",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"deleteFavourite"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "fetchUserDetails",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDYwMjAwMjAsImV4cCI6MTc0NjEwNjQyMH0.Fpx5G13WelOrXwzsksyHofnxsMUxD5P59TCfmkmY93s",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":19\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/fetchUserDetails",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"fetchUserDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rideSignUp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "profile",
+							"type": "file",
+							"src": "/C:/Users/Admin/OneDrive/Desktop/download (1).jpg"
+						},
+						{
+							"key": "firstname",
+							"value": "dinesh",
+							"type": "text"
+						},
+						{
+							"key": "lastname",
+							"value": "K",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "dinesh@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "mobile",
+							"value": "8907654324",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "Male",
+							"type": "text"
+						},
+						{
+							"key": "dob",
+							"value": "12-11-2000",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/rideSignUp",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"rideSignUp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rideLogin",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile\":\"8907654324\",\r\n     \"password\":\"12345678\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/rideLogin",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"rideLogin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addVehicle",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ride_id\":\"1\",\r\n     \"brand\":\"duke\",\r\n     \"model\":\"Y1\",\r\n     \"model_year\":\"2020\",\r\n     \"license_plate\":\"active\",\r\n     \"color\":\"red\",\r\n     \"booking_type\":\"offline\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/addVehicle",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"addVehicle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rideVehicleList",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwibW9iaWxlIjoiOTg3NjU0MzIxMCIsImlhdCI6MTc0NjAyMzE2OCwiZXhwIjoxNzQ2MTA5NTY4fQ.PXuK3MwH1Rfgk6AFhqVHFBCqTOINFkEPOk_kAyKXgDc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ride_id\":\"1\"\r\n \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/rideVehicleList",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"rideVehicleList"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addDocument",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NywibW9iaWxlIjoiODkwNzY1NDMyNCIsImlhdCI6MTc0NjExOTc0NiwiZXhwIjoxNzQ2MjA2MTQ2fQ._0SZB9p7ghyao6tU4yGk_NaGJdXLmt2grBfp66kD9Yk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "document",
+							"type": "file",
+							"src": "/C:/Users/Admin/OneDrive/Desktop/userprofile.jpg"
+						},
+						{
+							"key": "ride_id",
+							"value": "5",
+							"type": "text"
+						},
+						{
+							"key": "card_number",
+							"value": "8909",
+							"type": "text"
+						},
+						{
+							"key": "expired_date",
+							"value": "3-12-2000",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "aadhar",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/addDocument",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"addDocument"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getOrderDetailById",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":\"7\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/getOrderDetailById",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"getOrderDetailById"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "activeVehicle",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwibW9iaWxlIjoiOTg3NjU0MzIxMCIsImlhdCI6MTc0NjAyMzE2OCwiZXhwIjoxNzQ2MTA5NTY4fQ.PXuK3MwH1Rfgk6AFhqVHFBCqTOINFkEPOk_kAyKXgDc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":\"2\",\r\n     \"ride_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/activeVehicle",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"activeVehicle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listDocument",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwibW9iaWxlIjoiOTg3NjU0MzIxMCIsImlhdCI6MTc0NjAyMzE2OCwiZXhwIjoxNzQ2MTA5NTY4fQ.PXuK3MwH1Rfgk6AFhqVHFBCqTOINFkEPOk_kAyKXgDc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \r\n     \"ride_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/listDocument",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"listDocument"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "userProfileUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDYwOTI5NzYsImV4cCI6MTc0NjE3OTM3Nn0.ZhqnzYhPXRWb5tAFyP3ry7NvhUO-MbEa7p1xxDmVPYc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "profile",
+							"type": "file",
+							"src": "/C:/Users/Admin/OneDrive/Desktop/userprofile.jpg",
+							"disabled": true
+						},
+						{
+							"key": "userId",
+							"value": "32",
+							"type": "text"
+						},
+						{
+							"key": "firstname",
+							"value": "david sharma",
+							"type": "text"
+						},
+						{
+							"key": "lastname",
+							"value": "yung",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "male",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "david@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "dob",
+							"value": "12-12-2000",
+							"type": "text"
+						},
+						{
+							"key": "mobile",
+							"value": "9876543210",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/userProfileUpdate",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"userProfileUpdate"
+					],
+					"query": [
+						{
+							"key": "profile",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "userId",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "firstn",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "suggestions",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/suggestions",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"suggestions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UserRideTypes",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/UserRideTypes",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"UserRideTypes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pickupTypes",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksIm1vYmlsZSI6IjkwODc2Nzg5MDkiLCJpYXQiOjE3NDU5MzM0NjIsImV4cCI6MTc0NjAxOTg2Mn0.jPA-kZCs1vuRSLeZ4BzDoEGSbSe84sW_QlfGDIXlMIo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/pickupTypes",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"pickupTypes"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

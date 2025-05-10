@@ -50,6 +50,14 @@ const OrderBookings = sequelize.define('order_bookings', {
         type: DataTypes.DATE,
         allowNull: true,
     },
+    otp: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    otp_status: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     pickup_location: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -58,6 +66,7 @@ const OrderBookings = sequelize.define('order_bookings', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    
     duration: {
         type: DataTypes.TEXT,
         allowNull: true,

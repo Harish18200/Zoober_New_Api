@@ -9,11 +9,9 @@ exports.addFarePriceRule = async (req, res) => {
       minimum_fare,
       cancellation_fee,
       platform_fee,
-      max_wait_time
+      max_wait_time,
+      suggestion_id
     } = req.body;
-
-
- 
     try {
       const newRule = await PricingRules.create({
         base_price,
@@ -22,7 +20,8 @@ exports.addFarePriceRule = async (req, res) => {
         minimum_fare,
         cancellation_fee,
         platform_fee,
-        max_wait_time
+        max_wait_time,
+        suggestion_id
       });
   
       return res.status(201).json({
@@ -59,7 +58,6 @@ exports.addFarePriceRule = async (req, res) => {
         terms_conditions_url,
         privacy_policy_url,
       });
-  
       return res.status(201).json({
         success: true,
         message: 'Supports created successfully.',
@@ -67,6 +65,31 @@ exports.addFarePriceRule = async (req, res) => {
       });
     } catch (error) {
       console.error('Error creating pricing rule:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Server error. Please try again later.',
+        error: error.message
+      });
+    }
+  };
+  exports.supportList = async (req, res) => {
+    try {
+      const supportList = await Supports.findAll({
+        where: {
+          deleted_flag: null,
+          deleted_at: null
+        },
+        order: [['id', 'ASC']] 
+      });
+  
+      return res.status(200).json({
+        success: true,
+        message: 'Supports fetched successfully.',
+        data: supportList
+      });
+  
+    } catch (error) {
+      console.error('Error fetching supports:', error);
       return res.status(500).json({
         success: false,
         message: 'Server error. Please try again later.',

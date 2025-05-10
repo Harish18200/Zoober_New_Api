@@ -9,12 +9,12 @@ const verifyToken = require('../Middleware/authMiddleware');
 const verifyRideToken = require('../Middleware/rideMiddleware');
 const upload  = require('../Middleware/upload');
 const document  = require('../Middleware/document');
-
+ 
 
 
 router.post('/addFarePriceRule', adminController.addFarePriceRule);
 router.post('/supports', adminController.supports);
-
+router.get('/supportList', adminController.supportList);
 router.post('/userLogin', userController.userLogin);  
 router.post('/userSignUp', userController.userSignUp);  
 router.post('/rideSignUp', upload.single('profile'),rideController.rideSignUp);  
@@ -25,8 +25,7 @@ router.get('/totalActiveRide',rideController.totalActiveRide);
 router.get('/todayTotalRides',rideController.todayTotalRides);
 router.get('/todayRevenue',rideController.todayRevenue);
 router.post('/updateRideStatusByRideId',rideController.updateRideStatusByRideId);  
-router.get('/totalRidesDetails',rideController.totalRidesDetails);  
-
+router.get('/totalRidesDetails',rideController.totalRidesDetails);
 router.post('/activeVehicle', verifyRideToken,rideController.activeVehicle);
 router.post('/rideVehicleList', verifyRideToken,rideController.rideVehicleList);   
 router.post('/addDocument', verifyRideToken,document.single('document'),rideController.addDocument); 
@@ -45,12 +44,16 @@ router.post('/addFavourite', verifyToken, userController.addFavourite);
 router.post('/editFavourite', verifyToken, userController.editFavourite); 
 router.post('/deleteFavourite', verifyToken, userController.deleteFavourite); 
 router.post('/fetchUserDetails', verifyToken, userController.fetchUserDetails);  
-router.post('/userRideHistory', verifyToken, userController.userRideHistory);
+router.post('/userRidesHistory', userController.userRidesHistory);
 router.post('/addUserDetails', verifyToken, userController.addUserDetails);
 router.post('/updateUserDetails', verifyToken, userController.updateUserDetails);
 router.post('/deletedUserDetails', verifyToken, userController.deletedUserDetails);
 router.get('/getAllUsers', verifyToken, userController.getAllUsers);
 router.get('/totalUsers',  userController.totalUsers);
+router.post('/sendUserBookingOtp', userController.sendUserBookingOtp);
+router.post('/bookingOtpValidateUser', userController.bookingOtpValidateUser);
+router.post('/priceUpdateUserBooking', userController.priceUpdateUserBooking);
+router.post('/estimatesListUserBooking', userController.estimatesListUserBooking);
 
 module.exports = router;
 

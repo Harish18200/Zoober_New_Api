@@ -158,17 +158,19 @@ exports.updateRideStatusByRideId = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+const fetchTotalActiveRides = async () => {
+    return await Ride.findAll({
+        where: {
+            deleted_flag: null,
+            deleted_at: null,
+            status: "online"
+        }
+    });
+};
+
 exports.totalActiveRide = async (req, res) => {
-
     try {
-        const totalUsers = await Ride.count({
-            where: {
-                deleted_flag: null,
-                deleted_at: null,
-                ride_status: "active"
-            }
-        });
-
+        const totalUsers = await fetchTotalActiveRides();
         return res.status(200).json({ success: true, totalUsers });
     } catch (error) {
         console.error('Error fetching user count:', error);
@@ -260,7 +262,6 @@ exports.totalRidesDetails = async (req, res) => {
     }
   };
   
-
 exports.rideLogin = async (req, res) => {
     const { mobile, password } = req.body;
     const mobileRegex = /^\d{10}$/;
@@ -547,3 +548,4 @@ exports.getOrderDetailById = async (req, res) => {
         });
     }
 };
+exports.fetchTotalActiveRides = fetchTotalActiveRides;

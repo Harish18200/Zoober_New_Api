@@ -20,6 +20,7 @@ const UserDetails = sequelize.define('user_details', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+  
     wallet: {
         type: DataTypes.TEXT,
         allowNull: true,

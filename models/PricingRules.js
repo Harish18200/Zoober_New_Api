@@ -7,11 +7,16 @@ const PricingRules = sequelize.define('pricing_rules', {
         autoIncrement: true,
         primaryKey: true,
     },
-    base_price: {
+    suggestion_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+
+    price_per_km: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    price_per_km: {
+    per_kilometer_time: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
@@ -36,13 +41,13 @@ const PricingRules = sequelize.define('pricing_rules', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-  
-    
+
+
     deleted_flag: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-  
+
 
     created_at: {
         type: DataTypes.DATE,

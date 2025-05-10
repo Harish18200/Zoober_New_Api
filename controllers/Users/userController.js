@@ -92,7 +92,7 @@ exports.fetchUserDetails = async (req, res) => {
             include: [
                 {
                     model: UserDetails,
-                    required: false, 
+                    required: false,
                     where: {
                         deleted_flag: null,
                         deleted_at: null
@@ -122,7 +122,7 @@ exports.getAllUsers = async (req, res) => {
             include: [
                 {
                     model: UserDetails,
-                    required: false, 
+                    required: false,
                     where: {
                         deleted_flag: null,
                         deleted_at: null
@@ -142,11 +142,11 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 exports.totalUsers = async (req, res) => {
-   
+
     try {
         const totalUsers = await OrderDetail.count({
             where: {
-               
+
                 deleted_flag: null,
                 deleted_at: null
             }
@@ -215,9 +215,9 @@ exports.addUserDetails = async (req, res) => {
             return res.status(400).json({ success: false, message: 'userId is required' });
         }
         const newUserDetails = await UserDetails.create({
-            id: userId,      
+            id: userId,
             user_uid,
-            rating ,
+            rating,
             wallet
         });
 
@@ -342,7 +342,7 @@ exports.userLogin = async (req, res) => {
                 id: existingUser.id,
                 mobile: existingUser.mobile,
                 firstName: existingUser.firstname,
-                user_uid : existingUser.user_uid
+                user_uid: existingUser.user_uid
             }
         });
 
@@ -602,65 +602,11 @@ exports.deleteFavourite = async (req, res) => {
 
 exports.userOrderBooking = async (req, res) => {
     const {
-      user_uid,
-      user_id,
-      pickup_type_id,
-      user_ride_type_id,
-      distance,
-      duration,
-      pickup_latitude,
-      pickup_longitude,
-      drop_latitude,
-      drop_longitude,
-      pickup_start_datetime,
-      pickup_location,
-      drop_location,
-      suggestion_id,
-      order_status
-    } = req.body;
-
-    const requiredFields = {
-      user_id,
-      pickup_latitude,
-      pickup_longitude,
-      pickup_location,
-      distance,
-      duration,
-      drop_latitude,
-      drop_longitude,
-      drop_location
-    };
-  
-    for (const [field, value] of Object.entries(requiredFields)) {
-      if (value === undefined || value === null || value === '') {
-        return res.status(400).json({
-          success: false,
-          message: `${field} is required.`
-        });
-      }
-    }
-  
-    try {
-
-      const priceCalculator = await PricingRules.findOne({
-        order: [['id', 'ASC']]
-      });
-  
-      if (!priceCalculator || !priceCalculator.price_per_km) {
-        return res.status(500).json({
-          success: false,
-          message: 'Pricing rules not found or invalid.'
-        });
-      }
-      const amount = parseFloat((priceCalculator.price_per_km * distance).toFixed(2));
-      const newOrder = await OrderDetail.create({
         user_uid,
         user_id,
         pickup_type_id,
         user_ride_type_id,
-        amount,
         distance,
-        duration,
         pickup_latitude,
         pickup_longitude,
         drop_latitude,
@@ -669,25 +615,211 @@ exports.userOrderBooking = async (req, res) => {
         pickup_location,
         drop_location,
         suggestion_id,
-        order_status: order_status || "In Progress",
+        order_status
+    } = req.body;
 
-      });
-  
-      return res.status(201).json({
-        success: true,
-        message: 'Order details stored successfully.',
-        data: newOrder
-      });
-  
-    } catch (error) {
-      console.error('Error storing order details:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Server error. Please try again later.',
-        error: error.message
-      });
+    const requiredFields = {
+        user_id,
+        pickup_latitude,
+        pickup_longitude,
+        pickup_location,
+        distance,
+        drop_latitude,
+        drop_longitude,
+        drop_location
+    };
+
+    for (const [field, value] of Object.entries(requiredFields)) {
+        if (value === undefined || value === null || value === '') {
+            return res.status(400).json({
+                success: false,
+                message: `${field} is required.`
+            });
+        }
     }
-  };
+const numericDistance = typeof distance === 'string' ? distance.replace('km', '').trim() : distance;
+    try {
+        const newOrder = await OrderDetail.create({
+            user_uid,
+            user_id,
+            pickup_type_id,
+            user_ride_type_id,
+          distance: numericDistance,
+            pickup_latitude,
+            pickup_longitude,
+            drop_latitude,
+            drop_longitude,
+            pickup_start_datetime,
+            pickup_location,
+            drop_location,
+            suggestion_id,
+            order_status
+        });
+
+       
+
+        return res.status(201).json({
+            success: true,
+            message: 'Order stored and estimates calculated successfully.',
+            data: newOrder,
+        
+        });
+
+    } catch (error) {
+        console.error('Error storing order details:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error. Please try again later.',
+            error: error.message
+        });
+    }
+};
+exports.estimatesListUserBooking = async (req, res) => {
+    const { order_id, user_id } = req.body;
+
+    const requiredFields = { user_id, order_id };
+    for (const [field, value] of Object.entries(requiredFields)) {
+        if (value === undefined || value === null || value === '') {
+            return res.status(400).json({
+                success: false,
+                message: `${field} is required.`
+            });
+        }
+    }
+
+    try {
+ 
+        const bookingDetails = await OrderDetail.findOne({
+            where: {
+                user_id: user_id,
+                id: order_id
+            }
+        });
+
+        if (!bookingDetails) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found.'
+            });
+        }
+
+
+        const suggestions = await Suggestion.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null
+            }
+        });
+
+        const estimate = [];
+        for (const suggestion of suggestions) {
+            const priceRule = await PricingRules.findOne({
+                where: {
+                    suggestion_id: suggestion.id,
+                    deleted_flag: null,
+                    deleted_at: null
+                }
+            });
+
+            if (priceRule) {
+                const amount = parseFloat((priceRule.price_per_km * bookingDetails.distance).toFixed(2));
+                const totalMinutes = parseFloat((priceRule.per_kilometer_time * bookingDetails.distance).toFixed(2));
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = Math.round(totalMinutes % 60);
+                const formattedTime = `${hours > 0 ? hours + 'h ' : ''}${minutes}m`;
+
+                estimate.push({
+                    suggestion_id: suggestion.id,
+                    name: suggestion.name,
+                    amount,
+                    timing: formattedTime,
+                    orderId: bookingDetails.id,
+                    distance: bookingDetails.distance,
+                    userId: bookingDetails.user_id
+                });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Estimates calculated successfully.',
+            estimates: estimate
+        });
+
+    } catch (error) {
+        console.error('Error fetching order estimates:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error. Please try again later.',
+            error: error.message
+        });
+    }
+};
+
+exports.priceUpdateUserBooking = async (req, res) => {
+    const {
+        user_id,
+        order_id,
+        amount,
+        duration,
+        suggestion_id
+    } = req.body;
+
+    const requiredFields = {
+        user_id,
+        suggestion_id,
+        amount,
+        duration,
+        order_id
+    };
+
+    for (const [field, value] of Object.entries(requiredFields)) {
+        if (value === undefined || value === null || value === '') {
+            return res.status(400).json({
+                success: false,
+                message: `${field} is required.`
+            });
+        }
+    }
+
+    try {
+      
+        const [updated] = await OrderDetail.update(
+            {
+                user_id,
+                amount,
+                suggestion_id,
+                duration
+            },
+            {
+                where: { id: order_id }
+            }
+        );
+
+        if (updated === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found or no changes made.',
+              
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Order updated successfully.',
+         
+        });
+
+    } catch (error) {
+        console.error('Error updating order details:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error. Please try again later.',
+            error: error.message
+        });
+    }
+};
+
 
 exports.pickupTypes = async (req, res) => {
     try {
@@ -765,7 +897,7 @@ exports.suggestions = async (req, res) => {
 };
 
 
-exports.userRideHistory = async (req, res) => {
+exports.userRidesHistory = async (req, res) => {
     const { user_id } = req.body;
 
     if (!user_id) {
@@ -778,19 +910,20 @@ exports.userRideHistory = async (req, res) => {
     try {
         const today = new Date();
 
-        const newOrder = await OrderDetail.findAll({
+        const rideHistory = await OrderDetail.findAll({
             where: {
                 user_id: user_id,
-                pickup_start_datetime: {
-                    [Op.lt]: today
-                }
-            }
+                order_status: "Completed",
+                deleted_at: null,
+                deleted_flag: null
+            },
+            order: [['id', 'DESC']]
         });
 
         return res.status(200).json({
             success: true,
             message: 'Ride history fetched successfully.',
-            data: newOrder
+            data: rideHistory
         });
     } catch (error) {
         console.error('Error fetching ride history:', error);
@@ -799,5 +932,94 @@ exports.userRideHistory = async (req, res) => {
             message: 'Server error. Please try again later.',
             error: error.message
         });
+    }
+};
+
+exports.sendUserBookingOtp = async (req, res) => {
+    try {
+        const { userId, bookingId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+        if (!bookingId) {
+            return res.status(400).json({ success: false, message: 'bookingId is required' });
+        }
+
+        const random5Digit = Math.floor(10000 + Math.random() * 90000);
+
+        const [updated] = await OrderDetail.update(
+            {
+                otp: random5Digit,
+                otp_status: '1',
+            },
+            {
+                where: {
+                    id: bookingId,
+                    user_id: userId
+                }
+            }
+        );
+
+        if (updated === 0) {
+            return res.status(404).json({ success: false, message: 'User not found or not updated' });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'OTP generated and saved successfully',
+            otp: random5Digit
+        });
+
+    } catch (error) {
+        console.error('OTP update error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+exports.bookingOtpValidateUser = async (req, res) => {
+    try {
+        const { userId, bookingId, otp } = req.body;
+
+        if (!userId || !bookingId || !otp) {
+            return res.status(400).json({ success: false, message: 'userId, bookingId, and otp are required' });
+        }
+
+        const booking = await OrderDetail.findOne({
+            where: {
+                id: bookingId,
+                user_id: userId
+            }
+        });
+
+        if (!booking) {
+            return res.status(404).json({ success: false, message: 'Booking not found' });
+        }
+
+        if (booking.otp !== otp) {
+            return res.status(400).json({ success: false, message: 'Invalid OTP' });
+        }
+
+        await OrderDetail.update(
+            {
+                order_status: 'In Progress',
+                otp_status: '2'
+            },
+            {
+                where: {
+                    id: bookingId,
+                    user_id: userId
+                }
+            }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'OTP validated and booking status updated successfully'
+        });
+
+    } catch (error) {
+        console.error('OTP update error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
