@@ -958,7 +958,7 @@ exports.sendUserBookingOtp = async (req, res) => {
             return res.status(400).json({ success: false, message: 'bookingId is required' });
         }
 
-        const random5Digit = Math.floor(10000 + Math.random() * 90000);
+        const random5Digit = Math.floor(1000 + Math.random() * 9000);
 
         const [updated] = await OrderDetail.update(
             {
@@ -1075,10 +1075,12 @@ exports.bookingOtpValidateUser = async (req, res) => {
             order_id: bookingId,
             ride_id: rideId
         });
+             
 
         return res.status(200).json({
             success: true,
-            message: 'OTP validated and booking status updated successfully'
+            message: 'active Booking',
+            data:booking
         });
 
     } catch (error) {

@@ -21,14 +21,13 @@ router.post('/rideSignUp', upload.single('profile'),rideController.rideSignUp);
 router.post('/rideLogin', rideController.rideLogin);  
 router.post('/addVehicle', verifyRideToken,rideController.addVehicle); 
 router.post('/addOrUpdateRideDetails',rideController.addOrUpdateRideDetails);  
-router.get('/totalOnlineRide',rideController.totalOnlineRide);
+router.get('/totalOnlineRide',rideController.totalOnlineRide);  // New Api
 router.get('/todayTotalRides',rideController.todayTotalRides);
 router.get('/todayRevenue',rideController.todayRevenue);
-router.post('/markRiderStatus',rideController.markRiderStatus);  
-router.get('/totalRidesDetails',rideController.totalRidesDetails);
-router.post('/completedBookingRide',rideController.completedBookingRide);
-router.post('/completedBookingRide',rideController.completedBookingRide);
-router.post('/OrderCompletedChangeStatus',rideController.OrderCompletedChangeStatus);
+router.post('/markRiderStatus',rideController.markRiderStatus);   // New Api
+router.get('/totalRidesDetails',rideController.totalRidesDetails);  // New Api
+router.post('/completedBookingRide',rideController.completedBookingRide);  // New Api
+router.post('/OrderCompletedChangeStatus',rideController.OrderCompletedChangeStatus); // New Api
 
 router.post('/activeVehicle', verifyRideToken,rideController.activeVehicle);
 router.post('/rideVehicleList', verifyRideToken,rideController.rideVehicleList);   
@@ -54,12 +53,12 @@ router.post('/updateUserDetails', verifyToken, userController.updateUserDetails)
 router.post('/deletedUserDetails', verifyToken, userController.deletedUserDetails);
 router.get('/getAllUsers', verifyToken, userController.getAllUsers);
 router.get('/totalUsers',  userController.totalUsers);
-router.post('/sendUserBookingOtp', userController.sendUserBookingOtp);
-router.post('/bookingOtpValidateUser', userController.bookingOtpValidateUser);
-router.post('/priceUpdateUserBooking', userController.priceUpdateUserBooking);
-router.post('/estimatesListUserBooking', userController.estimatesListUserBooking);
-router.post('/getUserAllNotifications', userController.getUserAllNotifications);
-router.post('/userCompletedOrderList', userController.userCompletedOrderList);
+router.post('/sendUserBookingOtp', userController.sendUserBookingOtp); // New Api
+router.post('/bookingOtpValidateUser', userController.bookingOtpValidateUser); // New Api
+router.post('/priceUpdateUserBooking', userController.priceUpdateUserBooking); // New Api
+router.post('/estimatesListUserBooking', userController.estimatesListUserBooking); // New Api
+router.post('/getUserAllNotifications', userController.getUserAllNotifications); // New Api
+router.post('/userCompletedOrderList', userController.userCompletedOrderList);  // New Api
 
 module.exports = router;
 
