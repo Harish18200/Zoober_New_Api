@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
+const User = require('./User');
 
 const OrderBookings = sequelize.define('order_bookings', {
     id: {
@@ -66,13 +67,17 @@ const OrderBookings = sequelize.define('order_bookings', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    
+
     duration: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
     order_status: {
         type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    order_status_id: {
+        type: DataTypes.INTEGER,
         allowNull: true,
     },
     suggestion_id: {
@@ -103,5 +108,7 @@ const OrderBookings = sequelize.define('order_bookings', {
     tableName: 'order_bookings',
     timestamps: false,
 });
+OrderBookings.belongsTo(User, { foreignKey: 'user_id', as: 'users' });
+
 
 module.exports = OrderBookings;

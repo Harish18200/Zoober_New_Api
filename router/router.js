@@ -21,11 +21,15 @@ router.post('/rideSignUp', upload.single('profile'),rideController.rideSignUp);
 router.post('/rideLogin', rideController.rideLogin);  
 router.post('/addVehicle', verifyRideToken,rideController.addVehicle); 
 router.post('/addOrUpdateRideDetails',rideController.addOrUpdateRideDetails);  
-router.get('/totalActiveRide',rideController.totalActiveRide);
+router.get('/totalOnlineRide',rideController.totalOnlineRide);
 router.get('/todayTotalRides',rideController.todayTotalRides);
 router.get('/todayRevenue',rideController.todayRevenue);
-router.post('/updateRideStatusByRideId',rideController.updateRideStatusByRideId);  
+router.post('/markRiderStatus',rideController.markRiderStatus);  
 router.get('/totalRidesDetails',rideController.totalRidesDetails);
+router.post('/completedBookingRide',rideController.completedBookingRide);
+router.post('/completedBookingRide',rideController.completedBookingRide);
+router.post('/OrderCompletedChangeStatus',rideController.OrderCompletedChangeStatus);
+
 router.post('/activeVehicle', verifyRideToken,rideController.activeVehicle);
 router.post('/rideVehicleList', verifyRideToken,rideController.rideVehicleList);   
 router.post('/addDocument', verifyRideToken,document.single('document'),rideController.addDocument); 
@@ -54,6 +58,8 @@ router.post('/sendUserBookingOtp', userController.sendUserBookingOtp);
 router.post('/bookingOtpValidateUser', userController.bookingOtpValidateUser);
 router.post('/priceUpdateUserBooking', userController.priceUpdateUserBooking);
 router.post('/estimatesListUserBooking', userController.estimatesListUserBooking);
+router.post('/getUserAllNotifications', userController.getUserAllNotifications);
+router.post('/userCompletedOrderList', userController.userCompletedOrderList);
 
 module.exports = router;
 

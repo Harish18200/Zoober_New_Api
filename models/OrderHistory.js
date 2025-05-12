@@ -1,42 +1,23 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const RideDetails = sequelize.define('ride_details', {
+const OrderHistory = sequelize.define('order_histories', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    ride_id: {
+    user_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    ride_uid: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    total_ride: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    total_hours: {
-        type: DataTypes.TEXT,
+
+    order_id: {
+        type: DataTypes.INTEGER,
         allowNull: true,
     },
 
-    total_kilometer: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    rating: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    earning: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-    },
-    deleted_flag: {
+    ride_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
@@ -51,13 +32,12 @@ const RideDetails = sequelize.define('ride_details', {
         defaultValue: DataTypes.NOW
     },
     deleted_at: {
-        type: DataTypes.DATE,
+        type: DataTypes.NOW,
         allowNull: true,
-
     },
 }, {
-    tableName: 'ride_details',
+    tableName: 'order_histories',
     timestamps: false,
 });
 
-module.exports = RideDetails;
+module.exports = OrderHistory;

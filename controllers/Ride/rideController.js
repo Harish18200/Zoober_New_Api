@@ -1,4 +1,5 @@
 const Ride = require('../../models/Ride');
+const User = require('../../models/User');
 const RideDetails = require('../../models/RideDetails');
 const Vehicle = require('../../models/Vehicle');
 const Document = require('../../models/Document');
@@ -7,6 +8,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const { user } = require('../..');
+
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ZooberRide';
@@ -130,8 +132,7 @@ exports.addOrUpdateRideDetails = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
-exports.updateRideStatusByRideId = async (req, res) => {
+exports.markRiderStatus = async (req, res) => {
     const { rideId, ride_status } = req.body;
 
     if (!rideId) {
@@ -139,23 +140,112 @@ exports.updateRideStatusByRideId = async (req, res) => {
     }
 
     try {
-
         const existingRide = await Ride.findOne({ where: { id: rideId } });
 
-       
-        if (existingRide) {
+        if (!existingRide) {
+            return res.status(404).json({ success: false, message: 'Ride not found.' });
+        }
+
+        if (ride_status === "offline") {
+            const rideRecord = await Ride.findOne({
+                where: { id: rideId },
+                attributes: ['working_hour']
+            });
+
+            const offlineTime = new Date();
+            const workingHour = new Date(rideRecord.working_hour);
+            const totalMilliseconds = offlineTime - workingHour;
+            const addedMinutes = Math.floor(totalMilliseconds / (1000 * 60));
+
+            const rideDetail = await RideDetails.findOne({ where: { ride_id: rideId } });
+
+            let existingHours = 0;
+            let existingMinutes = 0;
+
+            if (rideDetail && rideDetail.total_hours) {
+                const [hours, minutes] = rideDetail.total_hours.split(':').map(Number);
+                existingHours = hours || 0;
+                existingMinutes = minutes || 0;
+            }
+
+            const totalExistingMinutes = existingHours * 60 + existingMinutes;
+            const totalMinutes = totalExistingMinutes + addedMinutes;
+
+            const finalHours = Math.floor(totalMinutes / 60);
+            const finalMinutes = totalMinutes % 60;
+            const formattedTime = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
+
+           await Ride.update({ status: ride_status }, { where: { id: rideId } });
+
+
+            if (rideDetail) {
+                await RideDetails.update(
+                    { total_hours: formattedTime },
+                    { where: { ride_id: rideId } }
+                );
+            } else {
+                await RideDetails.create({
+                    ride_id: rideId,
+                    total_hours: formattedTime
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: `Ride marked as offline. ${finalHours} hour(s) ${finalMinutes} minute(s) added.`,
+                duration: { hours: finalHours, minutes: finalMinutes }
+            });
+        }
+
+        if (ride_status === "online") {
             await Ride.update(
                 {
-                  ride_status
+                    ride_status,
+                    working_hour: new Date()
                 },
                 { where: { id: rideId } }
             );
 
-          
+            const bookingList = await OrderBooking.findAll({
+                where: {
+                    order_status_id: 2,
+                    deleted_flag: null,
+                    deleted_at: null
+                },
+                include: [
+                    {
+                        model: User,
+                        as: 'users'
+                    }
+                ],
+                raw: true,
+                nest: true
+            });
+
+            const flattenedBookingList = bookingList.map(({ users, ...booking }) => ({
+                ...booking,
+                ...users
+            }));
+
+            return res.status(200).json({
+                success: true,
+                message: 'Ride marked as online. Booking list fetched.',
+                data: flattenedBookingList
+            });
         }
+
+        return res.status(200).json({
+            success: true,
+            message: `Ride status updated to "${ride_status}".`
+        });
+
     } catch (error) {
-        console.error('Add/Update Ride Details error:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
+        console.error('Error updating ride status:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };
 const fetchTotalActiveRides = async () => {
@@ -167,17 +257,21 @@ const fetchTotalActiveRides = async () => {
         }
     });
 };
-
-exports.totalActiveRide = async (req, res) => {
+exports.totalOnlineRide = async (req, res) => {
     try {
-        const totalUsers = await fetchTotalActiveRides();
+        const totalUsers = await Ride.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null,
+                status: "online"
+            }
+        });
         return res.status(200).json({ success: true, totalUsers });
     } catch (error) {
         console.error('Error fetching user count:', error);
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
-
 exports.todayTotalRides = async (req, res) => {
     try {
         const today = new Date();
@@ -193,7 +287,7 @@ exports.todayTotalRides = async (req, res) => {
                 deleted_at: null,
                 created_at: {
                     [Op.lte]: endOfDay
-                  }
+                }
             }
         });
 
@@ -203,13 +297,12 @@ exports.todayTotalRides = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
-
 exports.todayRevenue = async (req, res) => {
     try {
         const today = new Date();
         const startOfDay = new Date(today.setHours(0, 0, 0, 0));
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-      
+
 
         const todayRevenue = await OrderBooking.sum('amount', {
             where: {
@@ -227,41 +320,39 @@ exports.todayRevenue = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
-
 exports.totalRidesDetails = async (req, res) => {
     try {
-      const allOrders = await OrderBooking.findAll({
-        where: {
-          deleted_flag: null,
-          deleted_at: null
-        },
-        // include: [
-        //   {
-        //     model: user,
-        //     required: false,
-        //     where: {
-        //       deleted_flag: null,
-        //       deleted_at: null
-        //     }
-        //   }
-        // ]
-      });
-  
-      return res.status(200).json({
-        success: true,
-        message: 'All order details fetched successfully.',
-        data: allOrders
-      });
+        const allOrders = await OrderBooking.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null
+            },
+            // include: [
+            //   {
+            //     model: user,
+            //     required: false,
+            //     where: {
+            //       deleted_flag: null,
+            //       deleted_at: null
+            //     }
+            //   }
+            // ]
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'All order details fetched successfully.',
+            data: allOrders
+        });
     } catch (error) {
-      console.error('Error fetching order details:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Server error',
-        error: error.message
-      });
+        console.error('Error fetching order details:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
-  };
-  
+};
 exports.rideLogin = async (req, res) => {
     const { mobile, password } = req.body;
     const mobileRegex = /^\d{10}$/;
@@ -293,6 +384,8 @@ exports.rideLogin = async (req, res) => {
             { expiresIn: '1d' }
         );
 
+        const rideDetails = await RideDetails.findOne({ where: { ride_id: rideLogin.id } });
+
         return res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -300,8 +393,14 @@ exports.rideLogin = async (req, res) => {
             user: {
                 id: rideLogin.id,
                 mobile: rideLogin.mobile,
-                firstname: rideLogin.firstname,
-                profile: `http://192.168.1.63:3000/upload/images/${rideLogin.profile}`
+               fullname: `${rideLogin.firstname} ${rideLogin.lastname}`,
+                profile: rideLogin.profile
+                    ? `http://192.168.1.63:3000/upload/images/${rideLogin.profile}`
+                    : null,
+                totalRide: rideDetails?.total_ride || 0,
+                totalEarning: rideDetails?.earning || 0,
+                totalKilometer: rideDetails?.total_kilometer || 0,
+                totalHours: rideDetails?.total_hours || "00:00"
             }
         });
 
@@ -515,7 +614,6 @@ exports.listDocument = async (req, res) => {
         });
     }
 };
-
 exports.getOrderDetailById = async (req, res) => {
     const { id } = req.body;
     if (!id) {
@@ -548,4 +646,124 @@ exports.getOrderDetailById = async (req, res) => {
         });
     }
 };
+exports.completedBookingRide = async (req, res) => {
+    const { orderId, rideId } = req.body;
+    if (!orderId) {
+        return res.status(400).json({
+            success: false,
+            message: 'orderId is required.'
+        });
+    }
+    if (!rideId) {
+        return res.status(400).json({
+            success: false,
+            message: 'RideId is required.'
+        });
+    }
+    try {
+        const orderDetail = await OrderBooking.findOne({
+            where: {
+                id: orderId,
+                order_status_id: 5,
+                deleted_at: null,
+                deleted_flag: null
+            }
+        });
+        if (!orderDetail) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order detail not found or not completed yet.'
+            });
+        }
+
+        const rideDetails = await RideDetails.findOne({
+            where: { ride_id: rideId }
+        });
+
+        const distance = parseFloat(orderDetail.distance || 0);
+        const amount = parseFloat(orderDetail.amount || 0);
+
+        if (rideDetails) {
+            const updatedRideCount = (parseFloat(rideDetails.total_ride) || 0) + 1;
+            const updatedDistance = (parseFloat(rideDetails.total_kilometer) || 0) + distance;
+            const updatedEarnings = (parseFloat(rideDetails.earning) || 0) + amount;
+
+            await RideDetails.update(
+                {
+                    total_ride: updatedRideCount,
+                    total_kilometer: updatedDistance,
+                    earning: updatedEarnings
+                },
+                {
+                    where: { ride_id: rideId }
+                }
+            );
+        } else {
+            await RideDetails.create({
+                ride_id: rideId,
+                total_ride: 1,
+                total_kilometer: distance,
+                earning: amount
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Ride summary updated successfully.'
+        });
+
+    } catch (error) {
+        console.error('Error completing booking ride:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while completing booking ride.'
+        });
+    }
+};
+exports.OrderCompletedChangeStatus = async (req, res) => {
+    const { orderId } = req.body;
+
+    if (!orderId) {
+        return res.status(400).json({
+            success: false,
+            message: 'orderId is required.'
+        });
+    }
+
+    try {
+        const [updatedRows] = await OrderBooking.update(
+            {
+                order_status_id: 5,
+                order_status: "Completed"
+            },
+            {
+                where: {
+                    id: orderId,
+                    deleted_at: null,
+                    deleted_flag: null
+                }
+            }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order detail not found or not updated.'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Order status updated to Completed successfully.'
+        });
+
+    } catch (error) {
+        console.error('Error completing booking ride:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while completing booking ride.'
+        });
+    }
+};
+
 exports.fetchTotalActiveRides = fetchTotalActiveRides;

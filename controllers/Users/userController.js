@@ -5,6 +5,9 @@ const OrderDetail = require('../../models/OrderBookings');
 const Suggestion = require('../../models/Suggestion');
 const UserRideType = require('../../models/UserRideType');
 const PickupType = require('../../models/PickupType');
+const Notifications = require('../../models/Notifications');
+const UserNotification = require('../../models/UserNotification');
+const OrderHistory = require('../../models/OrderHistory');
 const bcrypt = require('bcrypt');
 const moment = require('moment');
 const Favourite = require('../../models/Favourite');
@@ -637,14 +640,14 @@ exports.userOrderBooking = async (req, res) => {
             });
         }
     }
-const numericDistance = typeof distance === 'string' ? distance.replace('km', '').trim() : distance;
+    const numericDistance = typeof distance === 'string' ? distance.replace('km', '').trim() : distance;
     try {
         const newOrder = await OrderDetail.create({
             user_uid,
             user_id,
             pickup_type_id,
             user_ride_type_id,
-          distance: numericDistance,
+            distance: numericDistance,
             pickup_latitude,
             pickup_longitude,
             drop_latitude,
@@ -653,16 +656,18 @@ const numericDistance = typeof distance === 'string' ? distance.replace('km', ''
             pickup_location,
             drop_location,
             suggestion_id,
-            order_status
+            order_status: order_status ?? "stage_1",
+            order_status_id: 1
+
         });
 
-       
+
 
         return res.status(201).json({
             success: true,
             message: 'Order stored and estimates calculated successfully.',
             data: newOrder,
-        
+
         });
 
     } catch (error) {
@@ -688,7 +693,7 @@ exports.estimatesListUserBooking = async (req, res) => {
     }
 
     try {
- 
+
         const bookingDetails = await OrderDetail.findOne({
             where: {
                 user_id: user_id,
@@ -755,7 +760,6 @@ exports.estimatesListUserBooking = async (req, res) => {
         });
     }
 };
-
 exports.priceUpdateUserBooking = async (req, res) => {
     const {
         user_id,
@@ -783,13 +787,14 @@ exports.priceUpdateUserBooking = async (req, res) => {
     }
 
     try {
-      
         const [updated] = await OrderDetail.update(
             {
                 user_id,
                 amount,
                 suggestion_id,
-                duration
+                duration,
+                order_status: "Stage_2",
+                order_status_id: 2
             },
             {
                 where: { id: order_id }
@@ -799,15 +804,27 @@ exports.priceUpdateUserBooking = async (req, res) => {
         if (updated === 0) {
             return res.status(404).json({
                 success: false,
-                message: 'Order not found or no changes made.',
-              
+                message: 'Order not found or no changes made.'
             });
         }
+        const notification = await Notifications.findOne({
+            where: { title: 'OrderBooking' }
+        });
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: 'Notification with title "OrderBooking" not found.'
+            });
+        }
+        await UserNotification.create({
+            user_id: user_id,
+            notification_id: notification.id
+        });
 
         return res.status(200).json({
             success: true,
-            message: 'Order updated successfully.',
-         
+            message: 'Order updated and notification sent.'
         });
 
     } catch (error) {
@@ -819,8 +836,6 @@ exports.priceUpdateUserBooking = async (req, res) => {
         });
     }
 };
-
-
 exports.pickupTypes = async (req, res) => {
     try {
         const pickupTypes = await PickupType.findAll({
@@ -845,8 +860,6 @@ exports.pickupTypes = async (req, res) => {
         });
     }
 };
-
-
 exports.UserRideTypes = async (req, res) => {
     try {
         const UserRideTypes = await UserRideType.findAll({
@@ -871,7 +884,6 @@ exports.UserRideTypes = async (req, res) => {
         });
     }
 };
-
 exports.suggestions = async (req, res) => {
     try {
         const suggestions = await Suggestion.findAll({
@@ -895,7 +907,6 @@ exports.suggestions = async (req, res) => {
         });
     }
 };
-
 
 exports.userRidesHistory = async (req, res) => {
     const { user_id } = req.body;
@@ -942,6 +953,7 @@ exports.sendUserBookingOtp = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'userId is required' });
         }
+
         if (!bookingId) {
             return res.status(400).json({ success: false, message: 'bookingId is required' });
         }
@@ -952,6 +964,8 @@ exports.sendUserBookingOtp = async (req, res) => {
             {
                 otp: random5Digit,
                 otp_status: '1',
+                order_status: 'OTP Processing',
+                order_status_id: 3
             },
             {
                 where: {
@@ -962,24 +976,47 @@ exports.sendUserBookingOtp = async (req, res) => {
         );
 
         if (updated === 0) {
-            return res.status(404).json({ success: false, message: 'User not found or not updated' });
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found or update failed.'
+            });
         }
+
+        const notification = await Notifications.findOne({
+            where: { title: 'DriverSendOTP' }
+        });
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: 'Notification with title "DriverSendOTP" not found.'
+            });
+        }
+        await UserNotification.create({
+            user_id: userId,
+            notification_id: notification.id
+        });
 
         return res.status(200).json({
             success: true,
-            message: 'OTP generated and saved successfully',
+            message: 'OTP sent successfully.',
             otp: random5Digit
         });
 
     } catch (error) {
         console.error('OTP update error:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };
 
+
 exports.bookingOtpValidateUser = async (req, res) => {
     try {
-        const { userId, bookingId, otp } = req.body;
+        const { userId, bookingId, otp, rideId } = req.body;
 
         if (!userId || !bookingId || !otp) {
             return res.status(400).json({ success: false, message: 'userId, bookingId, and otp are required' });
@@ -996,14 +1033,17 @@ exports.bookingOtpValidateUser = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
+
         if (booking.otp !== otp) {
             return res.status(400).json({ success: false, message: 'Invalid OTP' });
         }
 
+
         await OrderDetail.update(
             {
                 order_status: 'In Progress',
-                otp_status: '2'
+                otp_status: 2,
+                order_status_id: 4
             },
             {
                 where: {
@@ -1013,6 +1053,29 @@ exports.bookingOtpValidateUser = async (req, res) => {
             }
         );
 
+        const notification = await Notifications.findOne({
+            where: { title: 'OtpVerified' }
+        });
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: 'Notification with title "OtpVerified" not found.'
+            });
+        }
+
+        await UserNotification.create({
+            user_id: userId,
+            notification_id: notification.id
+        });
+
+
+        await OrderHistory.create({
+            user_id: userId,
+            order_id: bookingId,
+            ride_id: rideId
+        });
+
         return res.status(200).json({
             success: true,
             message: 'OTP validated and booking status updated successfully'
@@ -1020,6 +1083,113 @@ exports.bookingOtpValidateUser = async (req, res) => {
 
     } catch (error) {
         console.error('OTP update error:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
     }
 };
+
+
+exports.getUserAllNotifications = async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'userId is required.'
+            });
+        }
+
+        const notifications = await UserNotification.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: Notifications,
+                    as: 'notifications',
+                    attributes: ['title', 'description', 'created_at']
+                }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+
+        if (!notifications || notifications.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No notifications found.'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User notifications retrieved successfully.',
+            data: notifications
+        });
+
+    } catch (error) {
+        console.error('Error fetching user notifications:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+
+exports.userCompletedOrderList = async (req, res) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({
+            success: false,
+            message: 'userId is required.'
+        });
+    }
+
+    try {
+        const bookingList = await OrderDetail.findAll({
+            where: {
+                user_id: userId,
+                order_status_id: 5,
+                deleted_flag: null,
+                deleted_at: null
+            },
+            include: [
+                {
+                    model: user,
+                    as: 'users'
+                }
+            ],
+            raw: true,
+            nest: true
+        });
+
+        if (!bookingList || bookingList.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No completed orders found.'
+            });
+        }
+        const flattenedBookingList = bookingList.map(({ users, ...booking }) => ({
+            ...booking,
+            ...users
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: 'Ride marked as online. Booking list fetched.',
+            data: flattenedBookingList
+        });
+
+    } catch (error) {
+        console.error('Error fetching completed orders:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while fetching completed orders.'
+        });
+    }
+};
+

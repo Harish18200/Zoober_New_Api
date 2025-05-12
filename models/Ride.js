@@ -40,6 +40,10 @@ const Ride = sequelize.define('rides', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+     working_hour: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
     ride_status: {
         type: DataTypes.TEXT,
         allowNull: true,
