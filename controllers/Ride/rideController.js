@@ -222,10 +222,10 @@ exports.markRiderStatus = async (req, res) => {
                 nest: true
             });
 
-            const flattenedBookingList = bookingList.map(({ users, ...booking }) => ({
-                ...booking,
-                ...users
-            }));
+  const flattenedBookingList = bookingList.map(({ users, ...booking }) => ({
+    ...booking,
+    ...users             
+}));
 
             return res.status(200).json({
                 success: true,
@@ -409,6 +409,48 @@ exports.rideLogin = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+exports.rideDashboard = async (req, res) => {
+    const { rideId } = req.body;
+
+    if (!rideId) {
+        return res.status(400).json({ success: false, message: 'rideId is required.' });
+    }
+
+    try {
+        const rideLogin = await Ride.findOne({
+            where: { id: rideId }
+        });
+
+        if (!rideLogin) {
+            return res.status(404).json({ success: false, message: 'Ride not found.' });
+        }
+
+        const rideDetails = await RideDetails.findOne({ where: { ride_id: rideLogin.id } });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Ride dashboard fetched successfully',
+            user: {
+                id: rideLogin.id,
+                mobile: rideLogin.mobile,
+                fullname: `${rideLogin.firstname || ''} ${rideLogin.lastname || ''}`.trim(),
+                profile: rideLogin.profile
+                    ? `http://192.168.1.63:3000/upload/images/${rideLogin.profile}`
+                    : null,
+                totalRide: rideDetails?.total_ride || null,
+                totalEarning: rideDetails?.earning || null,
+                totalKilometer: rideDetails?.total_kilometer || null,
+                totalHours: rideDetails?.total_hours || "00:00"
+            }
+        });
+
+    } catch (error) {
+        console.error('Ride dashboard error:', error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
 exports.addVehicle = async (req, res) => {
     const { ride_id, brand, model, model_year, license_plate, color, booking_type } = req.body;
 

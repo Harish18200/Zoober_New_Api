@@ -16,9 +16,10 @@ router.post('/addFarePriceRule', adminController.addFarePriceRule);
 router.post('/supports', adminController.supports);
 router.get('/supportList', adminController.supportList);
 router.post('/userLogin', userController.userLogin);  
-router.post('/userSignUp', userController.userSignUp);  
+router.post('/userSignUp', userController.userSignUp);
 router.post('/rideSignUp', upload.single('profile'),rideController.rideSignUp);  
 router.post('/rideLogin', rideController.rideLogin);  
+router.post('/rideDashboard', rideController.rideDashboard);  
 router.post('/addVehicle', verifyRideToken,rideController.addVehicle); 
 router.post('/addOrUpdateRideDetails',rideController.addOrUpdateRideDetails);  
 router.get('/totalOnlineRide',rideController.totalOnlineRide);  // New Api
