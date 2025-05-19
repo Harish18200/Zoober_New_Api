@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
+const Ride = require('./Ride');
 
 const RideDetails = sequelize.define('ride_details', {
     id: {
@@ -59,5 +60,5 @@ const RideDetails = sequelize.define('ride_details', {
     tableName: 'ride_details',
     timestamps: false,
 });
-
+RideDetails.belongsTo(Ride, { foreignKey: 'ride_id', as: 'rides' });
 module.exports = RideDetails;

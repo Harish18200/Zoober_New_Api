@@ -8,6 +8,7 @@ const PickupType = require('../../models/PickupType');
 const Notifications = require('../../models/Notifications');
 const UserNotification = require('../../models/UserNotification');
 const OrderHistory = require('../../models/OrderHistory');
+const Ride = require('../../models/Ride');
 const bcrypt = require('bcrypt');
 const moment = require('moment');
 const Favourite = require('../../models/Favourite');
@@ -15,6 +16,7 @@ const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
 const PricingRules = require('../../models/PricingRules');
+const axios = require('axios');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.userSignUp = async (req, res) => {
@@ -76,6 +78,10 @@ exports.userSignUp = async (req, res) => {
         });
     }
 };
+
+
+
+
 exports.fetchUserDetails = async (req, res) => {
     const { userId } = req.body;
     if (!userId) {
@@ -115,6 +121,7 @@ exports.fetchUserDetails = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
 exports.getAllUsers = async (req, res) => {
     try {
         const foundUsers = await user.findAll({
@@ -122,6 +129,16 @@ exports.getAllUsers = async (req, res) => {
                 deleted_flag: null,
                 deleted_at: null
             },
+            attributes: [
+                ['id', 'userId'],
+                'firstname',
+                'lastname',
+                'email',
+                'mobile',
+                ['user_status', 'userStatus'],
+                'city',
+                ['created_at', 'createdAt']
+            ],
             include: [
                 {
                     model: UserDetails,
@@ -129,38 +146,73 @@ exports.getAllUsers = async (req, res) => {
                     where: {
                         deleted_flag: null,
                         deleted_at: null
-                    }
+                    },
+                    attributes: ['rating', ['wallet', 'earning']]
                 }
-            ]
+            ],
+            raw: true,
+            nest: true
         });
 
-        if (!foundUsers || foundUsers.length === 0) {
+        // Use Promise.all to wait for all async .count() calls
+        const flattenedUsers = await Promise.all(
+            foundUsers.map(async user => {
+                const userRideCount = await OrderDetail.count({
+                    where: {
+                        deleted_flag: null,
+                        deleted_at: null,
+                        user_id: user.userId,
+                        order_status_id: 5
+                    }
+                });
+
+                return {
+                    userId: user.userId,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    email: user.email,
+                    mobile: user.mobile,
+                    userStatus: user.userStatus,
+                    city: user.city,
+                    createdAt: user.createdAt,
+                    rating: user.user_detail?.rating || null,
+                    earning: user.user_detail?.earning || null,
+                    totalRides: userRideCount || 0
+                };
+            })
+        );
+
+        if (flattenedUsers.length === 0) {
             return res.status(404).json({ success: false, message: 'No users found or all marked as deleted.' });
         }
 
-        return res.status(200).json({ success: true, users: foundUsers });
+        return res.status(200).json({ success: true, users: flattenedUsers });
     } catch (error) {
         console.error('Error fetching user details:', error);
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
+
+
+
 exports.totalUsers = async (req, res) => {
-
     try {
-        const totalUsers = await OrderDetail.count({
-            where: {
+        const totalUsers = await user.count(); 
 
-                deleted_flag: null,
-                deleted_at: null
-            }
+        return res.status(200).json({
+            success: true,
+            totalUsers,
         });
-
-        return res.status(200).json({ success: true, totalUsers });
     } catch (error) {
         console.error('Error fetching user count:', error);
-        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message,
+        });
     }
 };
+
 exports.userProfileUpdate = async (req, res) => {
     try {
         const userId = req.body.userId;
@@ -994,7 +1046,8 @@ exports.sendUserBookingOtp = async (req, res) => {
         }
         await UserNotification.create({
             user_id: userId,
-            notification_id: notification.id
+            notification_id: notification.id,
+            user_otp: random5Digit
         });
 
         return res.status(200).json({
@@ -1075,12 +1128,12 @@ exports.bookingOtpValidateUser = async (req, res) => {
             order_id: bookingId,
             ride_id: rideId
         });
-             
+
 
         return res.status(200).json({
             success: true,
             message: 'active Booking',
-            data:booking
+            data: booking
         });
 
     } catch (error) {
@@ -1124,10 +1177,18 @@ exports.getUserAllNotifications = async (req, res) => {
             });
         }
 
+        const filteredData = notifications.map(n => ({
+            user_id: n.user_id,
+            user_otp: n.user_otp,
+            title: n.notifications?.title || null,
+            description: n.notifications?.description || null,
+            notification_created_at: n.notifications?.created_at || null
+        }));
+
         return res.status(200).json({
             success: true,
             message: 'User notifications retrieved successfully.',
-            data: notifications
+            data: filteredData
         });
 
     } catch (error) {
@@ -1194,4 +1255,256 @@ exports.userCompletedOrderList = async (req, res) => {
         });
     }
 };
+
+exports.findingNearByDriver = async (req, res) => {
+    try {
+        const { userLat, userLng } = req.body;
+
+        if (!userLat || !userLng) {
+            return res.status(400).json({
+                success: false,
+                message: 'User latitude and longitude are required.'
+            });
+        }
+
+        const drivers = await Ride.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null
+            }
+        });
+
+        const getDistance = (lat1, lon1, lat2, lon2) => {
+            const R = 6371; // Earth radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        };
+
+        const nearbyDrivers = drivers
+            .map(driver => {
+                const distance = getDistance(
+                    parseFloat(userLat),
+                    parseFloat(userLng),
+                    parseFloat(driver.latitude),
+                    parseFloat(driver.longitude)
+                );
+                return {
+                    id: driver.id,
+                    fullname: `${driver.firstname} ${driver.lastname}`,
+                    mobile: driver.mobile,
+                    latitude: driver.latitude,
+                    longitude: driver.longitude,
+                    location: driver.location,
+                    distance: `${distance.toFixed(2)} km`
+                };
+            })
+            .filter(d => parseFloat(d.distance) <= 10) // within 10 km
+            .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
+            .slice(0, 5); // top 5 nearest
+
+        return res.status(200).json({
+            success: true,
+            message: 'Nearby drivers found successfully.',
+            drivers: nearbyDrivers
+        });
+
+    } catch (error) {
+        console.error('Error finding nearby drivers:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while finding nearby drivers.',
+            error: error.message
+        });
+    }
+};
+
+exports.recentRides = async (req, res) => {
+    try {
+        const recentRides = await OrderHistory.findAll({
+            where: {
+                deleted_at: null
+            },
+            include: [
+                {
+                    model: OrderDetail,
+                    required: false,
+                    where: {
+                        deleted_flag: null,
+                        deleted_at: null
+                    },
+                    attributes: [
+                        'pickup_location',
+                        'drop_location',
+                        'order_status',
+                        'distance',
+                        'amount',
+                        'duration'
+                    ]
+                },
+                {
+                    model: user,
+                    required: false,
+                    where: {
+                        deleted_at: null
+                    },
+                    attributes: ['firstname', 'lastname']
+                },
+                {
+                    model: Ride,
+                    required: false,
+                    where: {
+                        deleted_at: null
+                    },
+                    attributes: ['firstname', 'lastname']
+                }
+            ],
+            raw: false,
+            nest: true
+        });
+
+        const flattenedRides = recentRides.map(ride => ({
+            id: ride.id,
+            orderId: ride.order_id,
+            rideId: ride.ride_id,
+            userId: ride.user_id,
+            createdAt: ride.created_at,
+            updatedAt: ride.updated_at,
+            pickupLocation: ride.order_booking?.pickup_location || null,
+            dropLocation: ride.order_booking?.drop_location || null,
+            orderStatus: ride.order_booking?.order_status || null,
+            distance: ride.order_booking?.distance || null,
+            amount: ride.order_booking?.amount || null,
+            duration: ride.order_booking?.duration || null,
+            userFirstname: ride.user?.firstname || null,
+            userLastname: ride.user?.lastname || null,
+            driverFirstname: ride.ride?.firstname || null,
+            driverLastname: ride.ride?.lastname || null
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: 'Recent rides fetched successfully.',
+            rides: flattenedRides
+        });
+
+    } catch (error) {
+        console.error('Error fetching recent rides:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while fetching recent rides.',
+            error: error.message
+        });
+    }
+};
+
+
+
+
+
+
+
+
+
+// controller.js
+
+// function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+//   const R = 6371;
+//   const dLat = deg2rad(lat2 - lat1);
+//   const dLon = deg2rad(lon2 - lon1);
+//   const a =
+//     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+//     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+//     Math.sin(dLon / 2) * Math.sin(dLon / 2);
+//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//   return R * c;
+// }
+
+// function deg2rad(deg) {
+//   return deg * (Math.PI / 180);
+// }
+
+// exports.googleMap = async (req, res) => {
+//   const TVS_LAT = 10.793305408133959;
+//   const TVS_LNG = 78.70139486118003;
+
+//   const drivers = [
+//     { name: 'BDU', lat: 10.778069880805056, lng: 78.69693924351914 },
+//     { name: 'Railway', lat: 10.79529129742472, lng: 78.68677836388382 },
+//     { name: 'Supuramaniyapuram', lat: 10.789335146182308, lng: 78.70896755217046 },
+//     { name: 'Srirangam', lat: 10.864716175384418, lng: 78.68393559323708 },
+
+//   ];
+
+//   const nearbyDrivers = drivers.filter(driver => {
+//     const distance = getDistanceFromLatLonInKm(TVS_LAT, TVS_LNG, driver.lat, driver.lng);
+//     return distance <= 8;
+//   });
+
+//   res.json({ nearbyDrivers });
+// };
+
+
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of Earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+
+exports.googleMap = async (req, res) => {
+  const TVS_LAT = 10.793305408133959;
+  const TVS_LNG = 78.70139486118003;
+
+  try {
+    const drivers = await Ride.findAll({
+      where: {
+        deleted_flag: null,
+        deleted_at: null
+      }
+    });
+
+    const nearbyDrivers = drivers
+      .filter(driver => {
+        const lat = parseFloat(driver.latitude);
+        const lng = parseFloat(driver.longitude);   
+
+        // Skip if lat/lng missing
+        if (!lat || !lng) return false;
+
+        const distance = getDistanceFromLatLonInKm(TVS_LAT, TVS_LNG, lat, lng);
+        return distance <= 5;
+      })
+      .map(driver => ({
+        id: driver.id,
+        latitude: driver.latitude,
+        longitude: driver.longitude,
+        location: driver.location
+      }));
+
+    res.json({ nearbyDrivers });
+
+  } catch (error) {
+    console.error('Error fetching drivers:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
 

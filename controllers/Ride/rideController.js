@@ -6,8 +6,10 @@ const Document = require('../../models/Document');
 const OrderBooking = require('../../models/OrderBookings');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { Op } = require('sequelize');
+const { Op,fn, col, literal } = require('sequelize');
 const { user } = require('../..');
+const Suggestion = require('../../models/Suggestion');
+
 
 
 
@@ -175,7 +177,7 @@ exports.markRiderStatus = async (req, res) => {
             const finalMinutes = totalMinutes % 60;
             const formattedTime = `${String(finalHours).padStart(2, '0')}:${String(finalMinutes).padStart(2, '0')}`;
 
-           await Ride.update({ status: ride_status }, { where: { id: rideId } });
+            await Ride.update({ status: ride_status }, { where: { id: rideId } });
 
 
             if (rideDetail) {
@@ -200,7 +202,7 @@ exports.markRiderStatus = async (req, res) => {
         if (ride_status === "online") {
             await Ride.update(
                 {
-                    ride_status,
+                    status: ride_status,
                     working_hour: new Date()
                 },
                 { where: { id: rideId } }
@@ -215,22 +217,56 @@ exports.markRiderStatus = async (req, res) => {
                 include: [
                     {
                         model: User,
-                        as: 'users'
+                        as: 'users',
+                        attributes: [
+                            'firstname',
+                            'lastname',
+                            'mobile',
+                            'profile',
+                            'email',
+                            'gender',
+                            'dob',
+                            'user_status'
+                        ]
                     }
                 ],
                 raw: true,
                 nest: true
             });
 
-  const flattenedBookingList = bookingList.map(({ users, ...booking }) => ({
-    ...booking,
-    ...users             
-}));
+            const filteredOrders = bookingList.map(order => ({
+                order_id: order.id,
+                user_id: order.user_id,
+                distance: order.distance,
+                pickup_latitude: order.pickup_latitude,
+                pickup_longitude: order.pickup_longitude,
+                pickup_location: order.pickup_location,
+                drop_location: order.drop_location,
+                drop_latitude: order.drop_latitude,
+                drop_longitude: order.drop_longitude,
+                amount: order.amount,
+                duration: order.duration,
+                order_status_id: order.order_status_id,
+                suggestion_id: order.suggestion_id,
+                firstname: order.users.firstname,
+                lastname: order.users.lastname,
+                mobile: order.users.mobile,
+                profile: order.users.profile,
+                email: order.users.email,
+                gender: order.users.gender,
+                dob: order.users.dob,
+                user_status: order.users.user_status
+            }));
+
+            return res.status(200).json({
+                success: true,
+                data: filteredOrders
+            });
 
             return res.status(200).json({
                 success: true,
                 message: 'Ride marked as online. Booking list fetched.',
-                data: flattenedBookingList
+                data: bookingList
             });
         }
 
@@ -272,30 +308,47 @@ exports.totalOnlineRide = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
-exports.todayTotalRides = async (req, res) => {
+exports.totalActiveDrivers = async (req, res) => {
     try {
-        const today = new Date();
-        console.log('today', today);
-
-        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-        console.log('startOfDay', startOfDay);
-        console.log('endOfDay', endOfDay);
-        const todayTotalRides = await OrderBooking.count({
+        const totalDriverCount = await Ride.count({
             where: {
                 deleted_flag: null,
                 deleted_at: null,
-                created_at: {
-                    [Op.lte]: endOfDay
-                }
+                status: "online"
             }
         });
 
-        return res.status(200).json({ success: true, todayTotalRides });
+        return res.status(200).json({ success: true, totalDriverCount });
     } catch (error) {
-        console.error('Error fetching today\'s rides:', error);
+        console.error('Error fetching driver count:', error);
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
+};
+exports.todayTotalRides = async (req, res) => {
+  try {
+    const rides = await OrderBooking.findAll({
+      where: {
+        deleted_flag: null,
+        deleted_at: null,
+        order_status_id: 4,
+      },
+      attributes: [
+        [fn('DATE', col('ride_start_date')), 'date'],
+        [fn('COUNT', col('id')), 'totalRides']
+      ],
+      group: [fn('DATE', col('ride_start_date'))],
+      raw: true
+    });
+
+    return res.status(200).json({ success: true, rides });
+  } catch (error) {
+    console.error("Error grouping rides by date:", error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
 };
 exports.todayRevenue = async (req, res) => {
     try {
@@ -308,9 +361,10 @@ exports.todayRevenue = async (req, res) => {
             where: {
                 deleted_flag: null,
                 deleted_at: null,
-                created_at: {
-                    [Op.between]: [startOfDay, endOfDay]
-                }
+                order_status_id:5,
+            // ride_start_date: {
+            //         [Op.between]: [startOfDay, endOfDay]
+            //     }
             }
         });
 
@@ -393,7 +447,7 @@ exports.rideLogin = async (req, res) => {
             user: {
                 id: rideLogin.id,
                 mobile: rideLogin.mobile,
-               fullname: `${rideLogin.firstname} ${rideLogin.lastname}`,
+                fullname: `${rideLogin.firstname} ${rideLogin.lastname}`,
                 profile: rideLogin.profile
                     ? `http://192.168.1.63:3000/upload/images/${rideLogin.profile}`
                     : null,
@@ -807,5 +861,78 @@ exports.OrderCompletedChangeStatus = async (req, res) => {
         });
     }
 };
+exports.getAllDrivers = async (req, res) => {
+    try {
+        const foundDrivers = await Ride.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null
+            },
+            attributes: [
+                ['id', 'rideId'],
+                'firstname',
+                'lastname',
+                'email',
+                'mobile',
+                ['ride_status', 'rideStatus'],
+                ['created_at', 'createdAt']
+            ],
+            include: [
+                {
+                    model: RideDetails,
+                    required: false,
+                    where: {
+                        deleted_flag: null,
+                        deleted_at: null
+                    },
+                    attributes: ['rating', 'earning', ['total_ride', 'totalRides']]
+                },
+                {
+                    model: Vehicle,
+                    required: false,
+                    where: {
+                   
+                        deleted_at: null,
+                        status: 1
+                    },
+                    attributes: ['brand', 'model', 'model_year', 'license_plate']
+                }
+            ],
+            raw: true,
+            nest: true
+        });
+
+        const flattenedDrivers = foundDrivers.map(driver => ({
+            rideId: driver.rideId,
+            firstname: driver.firstname,
+            lastname: driver.lastname,
+            email: driver.email,
+            mobile: driver.mobile,
+            rideStatus: driver.rideStatus,
+            createdAt: driver.createdAt,
+            rating: driver.ride_detail?.rating || null,
+            earning: driver.ride_detail?.earning || null,
+            totalRides: driver.ride_detail?.totalRides || 0,
+            vehicleBrand: driver.vehicle?.brand || null,
+            vehicleModel: driver.vehicle?.model || null,
+            vehicleModelYear: driver.vehicle?.model_year || null,
+            licensePlace: driver.vehicle?.license_place || null
+        }));
+
+        if (flattenedDrivers.length === 0) {
+            return res.status(404).json({ success: false, message: 'No drivers found or all marked as deleted.' });
+        }
+
+        return res.status(200).json({ success: true, drivers: flattenedDrivers });
+    } catch (error) {
+        console.error('Error fetching driver details:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
+
+
+
+
 
 exports.fetchTotalActiveRides = fetchTotalActiveRides;

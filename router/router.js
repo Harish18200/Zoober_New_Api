@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 
+
 const userController = require('../controllers/Users/userController');
 const rideController = require('../controllers/Ride/rideController');
 const adminController = require('../controllers/Admin/adminController');
@@ -9,7 +10,19 @@ const verifyToken = require('../Middleware/authMiddleware');
 const verifyRideToken = require('../Middleware/rideMiddleware');
 const upload  = require('../Middleware/upload');
 const document  = require('../Middleware/document');
+
  
+// webAdmin Api's
+router.get('/totalActiveDrivers',rideController.totalActiveDrivers);  
+router.get('/totalUsers',  userController.totalUsers);
+router.get('/todayTotalRides',rideController.todayTotalRides);  // pending
+router.get('/todayRevenue',rideController.todayRevenue);  // pending
+router.get('/getAllUsers', userController.getAllUsers);
+router.get('/getAllDrivers',rideController.getAllDrivers);
+router.get('/recentRides',userController.recentRides);
+
+
+
 
 
 router.post('/addFarePriceRule', adminController.addFarePriceRule);
@@ -22,9 +35,9 @@ router.post('/rideLogin', rideController.rideLogin);
 router.post('/rideDashboard', rideController.rideDashboard);  
 router.post('/addVehicle', verifyRideToken,rideController.addVehicle); 
 router.post('/addOrUpdateRideDetails',rideController.addOrUpdateRideDetails);  
-router.get('/totalOnlineRide',rideController.totalOnlineRide);  // New Api
-router.get('/todayTotalRides',rideController.todayTotalRides);
-router.get('/todayRevenue',rideController.todayRevenue);
+router.get('/totalOnlineRide',rideController.totalOnlineRide);  
+
+
 router.post('/markRiderStatus',rideController.markRiderStatus);   // New Api
 router.get('/totalRidesDetails',rideController.totalRidesDetails);  // New Api
 router.post('/completedBookingRide',rideController.completedBookingRide);  // New Api
@@ -52,14 +65,20 @@ router.post('/userRidesHistory', userController.userRidesHistory);
 router.post('/addUserDetails', verifyToken, userController.addUserDetails);
 router.post('/updateUserDetails', verifyToken, userController.updateUserDetails);
 router.post('/deletedUserDetails', verifyToken, userController.deletedUserDetails);
-router.get('/getAllUsers', verifyToken, userController.getAllUsers);
-router.get('/totalUsers',  userController.totalUsers);
+
+
+
 router.post('/sendUserBookingOtp', userController.sendUserBookingOtp); // New Api
 router.post('/bookingOtpValidateUser', userController.bookingOtpValidateUser); // New Api
 router.post('/priceUpdateUserBooking', userController.priceUpdateUserBooking); // New Api
 router.post('/estimatesListUserBooking', userController.estimatesListUserBooking); // New Api
 router.post('/getUserAllNotifications', userController.getUserAllNotifications); // New Api
 router.post('/userCompletedOrderList', userController.userCompletedOrderList);  // New Api
+
+
+
+router.post('/findingNearByDriver', userController.findingNearByDriver);  // New Api
+router.post('/googleMap', userController.googleMap); 
 
 module.exports = router;
 

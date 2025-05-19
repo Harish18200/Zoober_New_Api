@@ -47,7 +47,7 @@ const OrderBookings = sequelize.define('order_bookings', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    pickup_start_datetime: {
+    ride_start_date: {
         type: DataTypes.DATE,
         allowNull: true,
     },
