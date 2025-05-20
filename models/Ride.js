@@ -24,6 +24,10 @@ const Ride = sequelize.define('rides', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+     ride_status_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     profile: {
         type: DataTypes.TEXT,
         allowNull: true,

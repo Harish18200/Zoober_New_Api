@@ -6,7 +6,7 @@ const Document = require('../../models/Document');
 const OrderBooking = require('../../models/OrderBookings');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { Op,fn, col, literal } = require('sequelize');
+const { Op, fn, col, literal } = require('sequelize');
 const { user } = require('../..');
 const Suggestion = require('../../models/Suggestion');
 
@@ -63,7 +63,8 @@ exports.rideSignUp = async (req, res) => {
             latitude,
             longitude,
             location,
-            ride_status: ride_status || "Pending Approval"
+            ride_status: ride_status || "Pending Approval",
+            ride_order_status_id: 1
         });
 
         res.status(200).json({
@@ -325,30 +326,31 @@ exports.totalActiveDrivers = async (req, res) => {
     }
 };
 exports.todayTotalRides = async (req, res) => {
-  try {
-    const rides = await OrderBooking.findAll({
-      where: {
-        deleted_flag: null,
-        deleted_at: null,
-        order_status_id: 4,
-      },
-      attributes: [
-        [fn('DATE', col('ride_start_date')), 'date'],
-        [fn('COUNT', col('id')), 'totalRides']
-      ],
-      group: [fn('DATE', col('ride_start_date'))],
-      raw: true
-    });
+    try {
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-    return res.status(200).json({ success: true, rides });
-  } catch (error) {
-    console.error("Error grouping rides by date:", error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
-  }
+        const rideCount = await OrderBooking.count({
+            where: {
+                deleted_flag: null,
+                deleted_at: null,
+                order_status_id: 4,
+                ride_start_date: {
+                    [Op.between]: [startOfDay, endOfDay]
+                }
+            },
+        });
+
+        return res.status(200).json({ success: true, count: rideCount });
+    } catch (error) {
+        console.error("Error fetching today's ride count:", error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message,
+        });
+    }
 };
 exports.todayRevenue = async (req, res) => {
     try {
@@ -361,10 +363,10 @@ exports.todayRevenue = async (req, res) => {
             where: {
                 deleted_flag: null,
                 deleted_at: null,
-                order_status_id:5,
-            // ride_start_date: {
-            //         [Op.between]: [startOfDay, endOfDay]
-            //     }
+                order_status_id: 5,
+                ride_start_date: {
+                        [Op.between]: [startOfDay, endOfDay]
+                    }
             }
         });
 
@@ -891,7 +893,7 @@ exports.getAllDrivers = async (req, res) => {
                     model: Vehicle,
                     required: false,
                     where: {
-                   
+
                         deleted_at: null,
                         status: 1
                     },
@@ -930,7 +932,80 @@ exports.getAllDrivers = async (req, res) => {
     }
 };
 
+exports.driverApproval = async (req, res) => {
+    const { rideId, rideStatusId, rideStatus } = req.body;
+    try {
+        const updatedRide = await Ride.update(
+            {
+                ride_status: rideStatus || "Approval",
+                ride_status_id: rideStatusId || 2
+            },
+            {
+                where: {
+                    deleted_flag: null,
+                    deleted_at: null,
+                    id: rideId
+                }
+            }
+        );
 
+        if (updatedRide[0] === 0) {
+            return res.status(404).json({ success: false, message: 'Ride not found or no changes made' });
+        }
+
+        return res.status(200).json({ success: true, message: 'Ride status updated successfully' });
+
+    } catch (error) {
+        console.error('Error updating ride status:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+exports.driverPendingApproval = async (req, res) => {
+    try {
+        const pendingRides = await Ride.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null,
+                ride_status_id: 1
+            }
+        });
+
+        if (pendingRides.length === 0) {
+            return res.status(404).json({ success: false, message: 'No pending approval rides found' });
+        }
+
+        return res.status(200).json({ success: true, rides: pendingRides });
+    } catch (error) {
+        console.error('Error fetching pending rides:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
+exports.driverListByStatus = async (req, res) => {
+    const { rideStatusId } = req.body;
+    try {
+        const whereCondition = {
+            deleted_flag: null,
+            deleted_at: null,
+        };
+        if (rideStatusId) {
+            whereCondition.ride_status_id = rideStatusId;
+        }
+
+        const rides = await Ride.findAll({
+            where: whereCondition
+        });
+
+        if (rides.length === 0) {
+            return res.status(404).json({ success: false, message: 'No rides found' });
+        }
+
+        return res.status(200).json({ success: true, rides });
+    } catch (error) {
+        console.error('Error fetching rides by status:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
 
 
 

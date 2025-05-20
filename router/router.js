@@ -13,20 +13,22 @@ const document  = require('../Middleware/document');
 
  
 // webAdmin Api's
-router.get('/totalActiveDrivers',rideController.totalActiveDrivers);  
-router.get('/totalUsers',  userController.totalUsers);
-router.get('/todayTotalRides',rideController.todayTotalRides);  // pending
-router.get('/todayRevenue',rideController.todayRevenue);  // pending
-router.get('/getAllUsers', userController.getAllUsers);
-router.get('/getAllDrivers',rideController.getAllDrivers);
-router.get('/recentRides',userController.recentRides);
+router.get('/totalActiveDrivers',rideController.totalActiveDrivers);    //ActiveDrivers
+router.get('/totalUsers',  userController.totalUsers);  //TotalUsers
+router.get('/todayTotalRides',rideController.todayTotalRides);  // TodayRides
+router.get('/todayRevenue',rideController.todayRevenue);  // RevenueToday
+router.get('/getAllUsers', userController.getAllUsers);  //Users 
+router.get('/getAllDrivers',rideController.getAllDrivers);  //Drivers 
+router.get('/recentRides',userController.recentRides);  // Recent Rides
+router.get('/driverPendingApproval',rideController.driverPendingApproval);  // driver pendingApproval
+router.get('/driverApproval',rideController.driverApproval);  // driver Approval
+router.post('/driverListByStatus',rideController.driverListByStatus);  //driver list by status
+router.post('/addFarePriceRule', adminController.addFarePriceRule);// Fare & Pricing
+router.post('/supports', adminController.supports);  // Supports
 
 
 
 
-
-router.post('/addFarePriceRule', adminController.addFarePriceRule);
-router.post('/supports', adminController.supports);
 router.get('/supportList', adminController.supportList);
 router.post('/userLogin', userController.userLogin);  
 router.post('/userSignUp', userController.userSignUp);
