@@ -28,8 +28,8 @@ RideDetails.belongsTo(Ride, { foreignKey: 'ride_id', targetKey: 'id' });
 Ride.hasOne(Vehicle, { foreignKey: 'ride_id', sourceKey: 'id' });
 Vehicle.belongsTo(Ride, { foreignKey: 'ride_id', targetKey: 'id' });
 
-OrderHistory.hasOne(OrderBooking, { foreignKey: 'id', sourceKey: 'order_id' });
-OrderBooking.belongsTo(OrderHistory, { foreignKey: 'order_id', targetKey: 'id' });
+// OrderHistory.hasOne(OrderBooking, { foreignKey: 'id', sourceKey: 'order_id' });
+// OrderBooking.belongsTo(OrderHistory, { foreignKey: 'order_id', targetKey: 'id' });
 
 User.hasOne(OrderHistory, { foreignKey: 'user_id', sourceKey: 'id' });
 OrderHistory.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' });

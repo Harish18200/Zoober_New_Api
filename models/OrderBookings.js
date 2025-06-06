@@ -20,6 +20,7 @@ const OrderBookings = sequelize.define('order_bookings', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    
     user_ride_type_id: {
         type: DataTypes.TEXT,
         allowNull: true,

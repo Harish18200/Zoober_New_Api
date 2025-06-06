@@ -8,6 +8,7 @@ const PickupType = require('../../models/PickupType');
 const Notifications = require('../../models/Notifications');
 const UserNotification = require('../../models/UserNotification');
 const OrderHistory = require('../../models/OrderHistory');
+const Insurance = require('../../models/Insurance');
 const Ride = require('../../models/Ride');
 const bcrypt = require('bcrypt');
 const moment = require('moment');
@@ -17,6 +18,7 @@ const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
 const PricingRules = require('../../models/PricingRules');
 const axios = require('axios');
+const FormData = require('form-data');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.userSignUp = async (req, res) => {
@@ -193,11 +195,248 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
+exports.addInsurance = async (req, res) => {
+    const { title, description, termCondition } = req.body;
+
+    if (!title || title.trim() === '') {
+        return res.status(400).json({ success: false, message: 'Title is required' });
+    }
+
+    try {
+        const newInsurance = await Insurance.create({
+            title,
+            description,
+            termCondition
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: 'Insurance added successfully',
+            data: newInsurance
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+exports.reteriveInsurances = async (req, res) => {
+    try {
+        const insurances = await Insurance.findAll({
+            where: {
+                deleted_flag: null
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Insurances retrieved successfully',
+            data: insurances
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+exports.reteriveInsuranceById = async (req, res) => {
+    const { insuranceId } = req.body;
+
+
+    if (!insuranceId) {
+        return res.status(400).json({
+            success: false,
+            message: 'insuranceId is required'
+        });
+    }
+
+    try {
+        const insurance = await Insurance.findOne({
+            where: {
+                id: insuranceId,
+                deleted_flag: null
+            }
+        });
+
+        if (!insurance) {
+            return res.status(404).json({
+                success: false,
+                message: 'Insurance not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Insurance retrieved successfully',
+            data: insurance
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+exports.deletedMarkIsuranceById = async (req, res) => {
+    const { insuranceId } = req.body;
+
+    if (!insuranceId) {
+        return res.status(400).json({
+            success: false,
+            message: 'insuranceId is required'
+        });
+    }
+
+    try {
+        const [updatedCount] = await Insurance.update(
+            {
+                deleted_flag: 1,
+                deleted_at: new Date()
+            },
+            {
+                where: {
+                    id: insuranceId,
+                    deleted_flag: null
+                }
+            }
+        );
+
+        if (updatedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Insurance not found or already deleted'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Insurance deleted successfully'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+exports.sendWhatsappOtp = async (req, res) => {
+
+
+    const mobile = req.body.mobile;
+
+    if (!mobile || mobile.length < 10) {
+        return res.status(400).json({ success: false, message: "Mobile number must be at least 10 digits" });
+    }
+
+    try {
+        const checkUserMobile = await user.findOne({
+            where: { mobile: mobile }
+        });
+
+        if (checkUserMobile) {
+            const randomOtp = Math.floor(1000 + Math.random() * 9000);
+            const notification = await Notifications.findOne({
+                where: { title: "LoginMobileOtp" }
+            });
+
+            if (!notification) {
+                return res.status(404).json({ success: false,message: "Notification not found" });
+            }
+
+            const otpUpdate = await UserNotification.create({
+                user_id: checkUserMobile.id,
+                notification_id: notification.id,
+                user_otp: randomOtp
+            });
+
+            const url = "https://wtservices.ackrock.com/api/send/whatsapp";
+            const secretKey = "f3b630127a407ae9dba5206ad454dd2d88ecaae7";
+            const account = '1749049350aab3238922bcc25a6f606eb525ffdc566840600606b57';
+            const recipient = "+91" + checkUserMobile.mobile;
+            const type = 'text';
+            const message = 'Welcome to Godago OTP:' + randomOtp;
+
+            try {
+                const form = new FormData();
+                form.append('secret', secretKey);
+                form.append('account', account);
+                form.append('recipient', recipient);
+                form.append('type', type);
+                form.append('message', message);
+
+                const response = await axios.post(url, form, {
+                    headers: form.getHeaders(),
+                });
+
+                return res.status(200).json({ success: true, message: "OTP sent", otp: randomOtp, userId: otpUpdate.user_id, id: otpUpdate.id });
+
+            } catch (error) {
+                if (error.response) {
+                    console.error("Error:", error.response.status, error.response.data);
+                    res.status(error.response.status).json({ success: false, error: error.response.data });
+                } else {
+                    console.error("Error:", error.message);
+                    res.status(500).json({ success: false, error: error.message });
+                }
+            }
+
+
+
+        } else {
+            return res.status(404).json({  success: false, message: "User not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({  success: false,  message: "Internal Server Error" });
+    }
+
+};
+
+exports.whatsappOtpValidate = async (req, res) => {
+    const { id, userId, otp } = req.body;
+
+    if (!id || !userId || !otp) {
+        return res.status(400).json({  success: false, message: "All fields (id, userId, otp) are required" });
+    }
+
+    try {
+        const getOtp = await UserNotification.findOne({
+            where: {
+                id: id,
+                user_id: userId
+            }
+        });
+
+        if (!getOtp) {
+            return res.status(404).json({  success: false, message: "User notification not found" });
+        }
+
+        if (getOtp.user_otp === otp) {
+            return res.status(200).json({  success: true, message: "OTP Validate Success", userId: getOtp.user_id });
+        } else {
+            return res.status(401).json({   success: false, message: "Invalid OTP" });
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        return res.status(500).json({  success: false, message: "Internal Server Error", error: error.message });
+    }
+};
+
 
 
 exports.totalUsers = async (req, res) => {
     try {
-        const totalUsers = await user.count(); 
+        const totalUsers = await user.count();
 
         return res.status(200).json({
             success: true,
@@ -732,7 +971,7 @@ exports.userOrderBooking = async (req, res) => {
     }
 };
 exports.estimatesListUserBooking = async (req, res) => {
-    const { order_id, user_id } = req.body;
+    const { user_id, order_id } = req.body;
 
     const requiredFields = { user_id, order_id };
     for (const [field, value] of Object.entries(requiredFields)) {
@@ -745,10 +984,9 @@ exports.estimatesListUserBooking = async (req, res) => {
     }
 
     try {
-
         const bookingDetails = await OrderDetail.findOne({
             where: {
-                user_id: user_id,
+                user_id,
                 id: order_id
             }
         });
@@ -759,7 +997,6 @@ exports.estimatesListUserBooking = async (req, res) => {
                 message: 'Order not found.'
             });
         }
-
 
         const suggestions = await Suggestion.findAll({
             where: {
@@ -812,6 +1049,7 @@ exports.estimatesListUserBooking = async (req, res) => {
         });
     }
 };
+
 exports.priceUpdateUserBooking = async (req, res) => {
     const {
         user_id,
@@ -1452,57 +1690,57 @@ exports.recentRides = async (req, res) => {
 
 
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Radius of Earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+    const R = 6371; // Radius of Earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
 function deg2rad(deg) {
-  return deg * (Math.PI / 180);
+    return deg * (Math.PI / 180);
 }
 
 exports.googleMap = async (req, res) => {
-  const TVS_LAT = 10.793305408133959;
-  const TVS_LNG = 78.70139486118003;
+    const TVS_LAT = 10.793305408133959;
+    const TVS_LNG = 78.70139486118003;
 
-  try {
-    const drivers = await Ride.findAll({
-      where: {
-        deleted_flag: null,
-        deleted_at: null
-      }
-    });
+    try {
+        const drivers = await Ride.findAll({
+            where: {
+                deleted_flag: null,
+                deleted_at: null
+            }
+        });
 
-    const nearbyDrivers = drivers
-      .filter(driver => {
-        const lat = parseFloat(driver.latitude);
-        const lng = parseFloat(driver.longitude);   
+        const nearbyDrivers = drivers
+            .filter(driver => {
+                const lat = parseFloat(driver.latitude);
+                const lng = parseFloat(driver.longitude);
 
-        // Skip if lat/lng missing
-        if (!lat || !lng) return false;
+                // Skip if lat/lng missing
+                if (!lat || !lng) return false;
 
-        const distance = getDistanceFromLatLonInKm(TVS_LAT, TVS_LNG, lat, lng);
-        return distance <= 5;
-      })
-      .map(driver => ({
-        id: driver.id,
-        latitude: driver.latitude,
-        longitude: driver.longitude,
-        location: driver.location
-      }));
+                const distance = getDistanceFromLatLonInKm(TVS_LAT, TVS_LNG, lat, lng);
+                return distance <= 5;
+            })
+            .map(driver => ({
+                id: driver.id,
+                latitude: driver.latitude,
+                longitude: driver.longitude,
+                location: driver.location
+            }));
 
-    res.json({ nearbyDrivers });
+        res.json({ nearbyDrivers });
 
-  } catch (error) {
-    console.error('Error fetching drivers:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+    } catch (error) {
+        console.error('Error fetching drivers:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 };
 
 

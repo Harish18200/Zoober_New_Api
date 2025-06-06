@@ -28,6 +28,22 @@ router.post('/supports', adminController.supports);  // Supports
 
 
 
+//Insurance  
+router.post('/addInsurance', userController.addInsurance);
+router.get('/reteriveInsurances',userController.reteriveInsurances);  
+router.post('/reteriveInsuranceById',userController.reteriveInsuranceById);
+router.post('/deletedMarkIsuranceById',userController.deletedMarkIsuranceById);
+
+
+//whatapp Api
+
+router.post('/sentWhatsappOtp',userController.sendWhatsappOtp);
+router.post('/whatsappOtpValidate',userController.whatsappOtpValidate);
+
+
+
+
+
 
 router.get('/supportList', adminController.supportList);
 router.post('/userLogin', userController.userLogin);  
