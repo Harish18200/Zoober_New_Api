@@ -1,0 +1,1991 @@
+{
+	"info": {
+		"_postman_id": "710df5a8-4926-4e0c-a6ff-124ef977a47f",
+		"name": "Zoober_localhost",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45483029",
+		"_collection_link": "https://harish-6332561.postman.co/workspace/Harish's-Workspace~c63d947e-d16c-473c-84fc-512f0aa28ff9/collection/45483029-710df5a8-4926-4e0c-a6ff-124ef977a47f?action=share&source=collection_link&creator=45483029"
+	},
+	"item": [
+		{
+			"name": "userLogin",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile\":\"9876543210\",\r\n     \"password\":\"12345678\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/userLogin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"userLogin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "userSignUp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile\":\"9876543210\",\r\n     \"password\":\"12345678\",\r\n     \"firstname\":\"davi\",\r\n     \"lastname\":\"kumar\",\r\n     \"gender\":\"Male\",\r\n     \"dob\":\"12-12-2000\",\r\n     \"email\":\"davi@gmail.com\",\r\n\"city\":\"trichy\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/userSignUp",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"userSignUp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "userOrderBooking",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n      \"user_id\":22,\r\n      \"pickup_latitude\":\"37.7749\",\r\n      \"pickup_longitude\":\"-122.4194\",\r\n      \"pickup_location\":\"srirangam\",\r\n      \"distance\":\"44\",\r\n      \"duration\":\"6 hours 10 minutes\",\r\n      \"drop_latitude\":\"34.0522\",\r\n      \"drop_longitude\":\"-118.2437\",\r\n      \"drop_location\":\"law college\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/userOrderBooking",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"userOrderBooking"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addFarePriceRule",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n      \"base_price\":\"2.50\",\r\n      \"price_per_km\":\"1.25\",\r\n      \"price_per_minute\":\"0.35\",\r\n      \"minimum_fare\":\"5.00\",\r\n      \"cancellation_fee\":\"3.00\",\r\n      \"platform_fee\":\"1.50\",\r\n      \"max_wait_time\":\"5\",\r\n      \"suggestion_id\":1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/addFarePriceRule",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addFarePriceRule"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "supports",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n      \"platform_name\":\"GODAGO\",\r\n      \"support_email\":\"support@godago.com\",\r\n      \"support_phone\":\"+1 (800) 555-0123\",\r\n      \"help_center_url\":\"https://help.godago.com\",\r\n      \"terms_conditions_url\":\"https://godago.com/terms\",\r\n      \"privacy_policy_url\":\"https://godago.com/privacy\"\r\n    \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/supports",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"supports"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sentWhatappOtp",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile\":\"8838721805\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/sentWhatsappOtp",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"sentWhatsappOtp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "whatsappOtpValidate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":65,\r\n    \"userId\":25,\r\n    \"otp\":9349\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/whatsappOtpValidate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"whatsappOtpValidate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "userRidesHistory",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjEsIm1vYmlsZSI6IjkwOTg3NjU0MzIiLCJpYXQiOjE3NDYxOTMwNzcsImV4cCI6MTc0NjI3OTQ3N30.BN5QUOMP5_lgf9RHR-0YpEWuFN1ifPaeQVks-eyjQDs",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"22\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/userRidesHistory",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"userRidesHistory"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteAccount",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"21\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/deleteAccount",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"deleteAccount"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "favouriteList",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"4\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/favouriteList",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"favouriteList"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addFavourite",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"4\",\r\n    \"title\":\"home\",\r\n    \"description\":\"testing\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/addFavourite",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addFavourite"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "editFavourite",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"4\",\r\n    \"title\":\"home\",\r\n    \"description\":\"testing\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/addFavourite",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addFavourite"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "editFavourite",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"4\",\r\n    \"title\":\"New Home\",\r\n    \"description\":\"New Testing\",\r\n    \"id\":7\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/editFavourite",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"editFavourite"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteFavourite",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":7\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/deleteFavourite",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"deleteFavourite"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "fetchUserDetails",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsIm1vYmlsZSI6Ijk4NzY1NDMyMTAiLCJpYXQiOjE3NDY0NTM5MTcsImV4cCI6MTc0NjU0MDMxN30.o3zjoD-mXg19Ll5htXReHOi0jg_t1zJBsagWTGg3OWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":22\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/fetchUserDetails",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"fetchUserDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllUsers",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsIm1vYmlsZSI6Ijk4NzY1NDMyMTAiLCJpYXQiOjE3NDY0NTM5MTcsImV4cCI6MTc0NjU0MDMxN30.o3zjoD-mXg19Ll5htXReHOi0jg_t1zJBsagWTGg3OWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/getAllUsers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"getAllUsers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "totalUsers",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsIm1vYmlsZSI6Ijk4NzY1NDMyMTAiLCJpYXQiOjE3NDY0NTM5MTcsImV4cCI6MTc0NjU0MDMxN30.o3zjoD-mXg19Ll5htXReHOi0jg_t1zJBsagWTGg3OWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":22\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/totalUsers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"totalUsers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rideSignUp",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "profile",
+							"type": "file",
+							"src": "/C:/Users/Admin/OneDrive/Desktop/download (1).jpg",
+							"disabled": true
+						},
+						{
+							"key": "firstname",
+							"value": "guru",
+							"type": "text"
+						},
+						{
+							"key": "lastname",
+							"value": "S",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "guru@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "mobile",
+							"value": "9890987654",
+							"type": "text"
+						},
+						{
+							"key": "gender",
+							"value": "male",
+							"type": "text"
+						},
+						{
+							"key": "dob",
+							"value": "12-12-2006",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						},
+						{
+							"key": "status",
+							"value": "online",
+							"type": "text"
+						},
+						{
+							"key": "latitude",
+							"value": "10.9194° N",
+							"type": "text"
+						},
+						{
+							"key": "longitude",
+							"value": "78.7409° E",
+							"type": "text"
+						},
+						{
+							"key": "location",
+							"value": "samayapuram",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/rideSignUp",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"rideSignUp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rideLogin",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile\":\"9890987654\",\r\n     \"password\":\"12345678\"\r\n \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/rideLogin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"rideLogin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addOrUpdateRideDetails",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwibW9iaWxlIjoiOTg5MDk4NzY1NCIsImlhdCI6MTc0NjUzNzMzMCwiZXhwIjoxNzQ2NjIzNzMwfQ.2yJexlVP3MFtvRj4oVa6R1EEQnxcFljYisfPlz52zkk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rideId\":\"2\",\r\n     \"earning\":555\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/addOrUpdateRideDetails",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addOrUpdateRideDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "totalActiveRide",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwibW9iaWxlIjoiOTg5MDk4NzY1NCIsImlhdCI6MTc0NjUzNzMzMCwiZXhwIjoxNzQ2NjIzNzMwfQ.2yJexlVP3MFtvRj4oVa6R1EEQnxcFljYisfPlz52zkk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.59:3000/api/totalActiveRide",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"59"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"totalActiveRide"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addVehicle",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwibW9iaWxlIjoiOTg3NjU0MzIxMCIsImlhdCI6MTc0NjAwOTkwNCwiZXhwIjoxNzQ2MDk2MzA0fQ.NdMFh44CdLqC-ZYVv1qvB0nJENTIEvfKREKEwolYSPc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ride_id\":\"1\",\r\n     \"brand\":\"duke\",\r\n     \"model\":\"Y1\",\r\n     \"model_year\":\"2020\",\r\n     \"license_plate\":\"active\",\r\n     \"color\":\"red\",\r\n     \"booking_type\":\"offline\"\r\n \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/addVehicle",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addVehicle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rideVehicleList",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ride_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/rideVehicleList",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"rideVehicleList"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updateRideStatusByRideId",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rideId\":\"88\",\r\n    \"ride_status\":\"Active\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/updateRideStatusByRideId",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"updateRideStatusByRideId"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "totalRidesDetails",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rideId\":\"8\",\r\n    \"ride_status\":\"Active\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/totalRidesDetails",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"totalRidesDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "todayTotalRides",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/todayTotalRides",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"todayTotalRides"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "todayRevenue",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/todayRevenue",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"todayRevenue"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addDocument",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwibW9iaWxlIjoiOTg5MDk4NzY1NCIsImlhdCI6MTc0NjA5Mzg3NywiZXhwIjoxNzQ2MTgwMjc3fQ.u8nTJu5WmXnMvDw458vOzwuCX3wDk8pVgKYf2WpzgXo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "document",
+							"type": "file",
+							"src": "/C:/Users/Admin/OneDrive/Desktop/userprofile.jpg"
+						},
+						{
+							"key": "ride_id",
+							"value": "5",
+							"type": "text"
+						},
+						{
+							"key": "card_number",
+							"value": "8909",
+							"type": "text"
+						},
+						{
+							"key": "expired_date",
+							"value": "3-12-2000",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "New update",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://192.168.50.75:3000/api/addDocument",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"50",
+						"75"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addDocument"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listDocument",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwibW9iaWxlIjoiOTg5MDk4NzY1NCIsImlhdCI6MTc0NjE5NzA1NiwiZXhwIjoxNzQ2MjgzNDU2fQ.VTtkLtaluSkYxF1DzjSYHUPB6ePG7oghZ6mbnzdjIWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ride_id\":\"1\"\r\n \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/listDocument",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"listDocument"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getOrderDetailById",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":\"9\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/getOrderDetailById",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"getOrderDetailById"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "userProfileUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsIm1vYmlsZSI6Ijk4NzY1NDMyMTAiLCJpYXQiOjE3NDY0NTM5MTcsImV4cCI6MTc0NjU0MDMxN30.o3zjoD-mXg19Ll5htXReHOi0jg_t1zJBsagWTGg3OWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "profile",
+							"type": "file",
+							"src": "/C:/Users/Admin/OneDrive/Desktop/userprofile.jpg",
+							"disabled": true
+						},
+						{
+							"key": "userId",
+							"value": "22",
+							"type": "text"
+						},
+						{
+							"key": "firstname",
+							"value": "sharma",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "lastname",
+							"value": "M",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "email",
+							"value": "Mani@gmail.com",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "mobile",
+							"value": "9098765113",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "gender",
+							"value": "male",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "dob",
+							"value": "12-12-2000",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "city",
+							"value": "chennai",
+							"type": "text"
+						},
+						{
+							"key": "user_status",
+							"value": "Inactive",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/userProfileUpdate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"userProfileUpdate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addUserDetails",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsIm1vYmlsZSI6Ijk4NzY1NDMyMTAiLCJpYXQiOjE3NDY0NTM5MTcsImV4cCI6MTc0NjU0MDMxN30.o3zjoD-mXg19Ll5htXReHOi0jg_t1zJBsagWTGg3OWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"20\",\r\n     \"user_uid\":\"b2b422f8-25ba-4f31-aef9-c91aa7650bc8\",\r\n     \"rating\":\"5\",\r\n     \"wallet\":\"100\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/addUserDetails",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addUserDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updateUserDetails",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsIm1vYmlsZSI6Ijk4NzY1NDMyMTAiLCJpYXQiOjE3NDY0NTM5MTcsImV4cCI6MTc0NjU0MDMxN30.o3zjoD-mXg19Ll5htXReHOi0jg_t1zJBsagWTGg3OWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"20\",\r\n     \"user_uid\":\"-25ba-4f31-aef9-c91aa7650bc8\",\r\n     \"rating\":\"1\",\r\n     \"wallet\":\"1010\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/updateUserDetails",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"updateUserDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deletedUserDetails",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjIsIm1vYmlsZSI6Ijk4NzY1NDMyMTAiLCJpYXQiOjE3NDY0NTM5MTcsImV4cCI6MTc0NjU0MDMxN30.o3zjoD-mXg19Ll5htXReHOi0jg_t1zJBsagWTGg3OWw",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"20\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/deletedUserDetails",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"deletedUserDetails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "activeVehicle",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwibW9iaWxlIjoiOTg3NjU0MzIxMCIsImlhdCI6MTc0NjAyMzE2OCwiZXhwIjoxNzQ2MTA5NTY4fQ.PXuK3MwH1Rfgk6AFhqVHFBCqTOINFkEPOk_kAyKXgDc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ride_id\":1,\r\n    \"id\":9\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/activeVehicle",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"activeVehicle"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pickupTypes",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/pickupTypes",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"pickupTypes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UserRideTypes",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/UserRideTypes",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"UserRideTypes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "suggestions",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/suggestions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"suggestions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "supportList",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"pickup_type_id\":\"1\",\r\n     \"user_ride_type_id\":\"1\",\r\n     \"amount\":\"300\",\r\n     \"kilometer\":\"15\",\r\n     \"pickup_start_datetime\":\"12-12-2000\",\r\n     \"pickup_location\":\"Trichy\",\r\n     \"drop_location\":\"airport\",\r\n     \"suggestion_id\":\"1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/supportList",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"supportList"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deviceLocation",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"21\",\r\n     \"device_location\":\"Trichy\"\r\n  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.63:3000/api/deviceLocation",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"63"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"deviceLocation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sendUserBookingOtp",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"22\",\r\n     \"bookingId\":\"12\"\r\n  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.59:3000/api/sendUserBookingOtp",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"59"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"sendUserBookingOtp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "bookingOtpValidateUser",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"22\",\r\n     \"bookingId\":\"12\",\r\n     \"otp\":16057\r\n  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.59:3000/api/bookingOtpValidateUser",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"59"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"bookingOtpValidateUser"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addInsurance",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"22\",\r\n     \"bookingId\":\"12\",\r\n     \"otp\":16057\r\n  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/addInsurance",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"addInsurance"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deletedMarkIsuranceById",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"22\",\r\n     \"bookingId\":\"12\",\r\n     \"otp\":16057\r\n  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/deletedMarkIsuranceById",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"deletedMarkIsuranceById"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reteriveInsuranceById",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\":\"22\",\r\n     \"bookingId\":\"12\",\r\n     \"otp\":16057\r\n  \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/reteriveInsuranceById",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"reteriveInsuranceById"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "estimatesListUserBooking",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjAsIm1vYmlsZSI6IjEyMzQ1Njc4OTAiLCJpYXQiOjE3NDU5MzMzNDgsImV4cCI6MTc0NjAxOTc0OH0.oVyl7Go95RmKZuUxXo6T2m4qOu8UBDnc8gzu41y3KNo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_id\":\"25\",\r\n    \"order_id\":\"72\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://zoober.ackrock.com/api/estimatesListUserBooking",
+					"protocol": "https",
+					"host": [
+						"zoober",
+						"ackrock",
+						"com"
+					],
+					"path": [
+						"api",
+						"estimatesListUserBooking"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
