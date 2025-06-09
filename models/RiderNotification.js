@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
+const Notification = require('./Notifications');
 
 const RiderNotification = sequelize.define('rider_notifications', {
     id: {
@@ -13,6 +14,10 @@ const RiderNotification = sequelize.define('rider_notifications', {
     },
      
     notification_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+     rider_otp: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
@@ -34,5 +39,6 @@ const RiderNotification = sequelize.define('rider_notifications', {
     tableName: 'rider_notifications',
     timestamps: false,
 });
+RiderNotification.belongsTo(Notification, { foreignKey: 'notification_id', as: 'notifications' });
 
 module.exports = RiderNotification;

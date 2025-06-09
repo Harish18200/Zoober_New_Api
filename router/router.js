@@ -35,10 +35,20 @@ router.post('/reteriveInsuranceById',userController.reteriveInsuranceById);
 router.post('/deletedMarkIsuranceById',userController.deletedMarkIsuranceById);
 
 
-//whatapp Api
+// User whatapp Otp Api
 
 router.post('/sentWhatsappOtp',userController.sendWhatsappOtp);
 router.post('/whatsappOtpValidate',userController.whatsappOtpValidate);
+
+// Driver Whatapp Otp Api 
+
+router.post('/driverSentWhatsappOtp',rideController.driverSentWhatsappOtp);
+router.post('/driverWhatsappOtpValidate',rideController.driverWhatsappOtpValidate);
+
+//driver Api's
+
+router.post('/getRiderAllNotifications', rideController.getRiderAllNotifications);
+
 
 
 

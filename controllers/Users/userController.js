@@ -345,11 +345,11 @@ exports.sendWhatsappOtp = async (req, res) => {
         if (checkUserMobile) {
             const randomOtp = Math.floor(1000 + Math.random() * 9000);
             const notification = await Notifications.findOne({
-                where: { title: "LoginMobileOtp" }
+                where: { title: "OTPLogin" }
             });
 
             if (!notification) {
-                return res.status(404).json({ success: false,message: "Notification not found" });
+                return res.status(404).json({ success: false, message: "Notification not found" });
             }
 
             const otpUpdate = await UserNotification.create({
@@ -392,11 +392,11 @@ exports.sendWhatsappOtp = async (req, res) => {
 
 
         } else {
-            return res.status(404).json({  success: false, message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({  success: false,  message: "Internal Server Error" });
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 
 };
@@ -405,7 +405,7 @@ exports.whatsappOtpValidate = async (req, res) => {
     const { id, userId, otp } = req.body;
 
     if (!id || !userId || !otp) {
-        return res.status(400).json({  success: false, message: "All fields (id, userId, otp) are required" });
+        return res.status(400).json({ success: false, message: "All fields (id, userId, otp) are required" });
     }
 
     try {
@@ -417,18 +417,38 @@ exports.whatsappOtpValidate = async (req, res) => {
         });
 
         if (!getOtp) {
-            return res.status(404).json({  success: false, message: "User notification not found" });
+            return res.status(404).json({ success: false, message: "User notification not found" });
         }
 
         if (getOtp.user_otp === otp) {
-            return res.status(200).json({  success: true, message: "OTP Validate Success", userId: getOtp.user_id });
+
+            const userDetails = await user.findOne({ where: { id: userId } });
+
+
+            const token = jwt.sign(
+                { id: userDetails.id, mobile: userDetails.mobile },
+                process.env.JWT_SECRET,
+                { expiresIn: '1d' }
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                token,
+                user: {
+                    id: userDetails.id,
+                    mobile: userDetails.mobile,
+                    firstName: userDetails.firstname,
+                    user_uid: userDetails.user_uid
+                }
+            });
         } else {
-            return res.status(401).json({   success: false, message: "Invalid OTP" });
+            return res.status(401).json({ success: false, message: "Invalid OTP" });
         }
 
     } catch (error) {
         console.error("Error:", error);
-        return res.status(500).json({  success: false, message: "Internal Server Error", error: error.message });
+        return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
     }
 };
 
@@ -1214,7 +1234,7 @@ exports.userRidesHistory = async (req, res) => {
         const rideHistory = await OrderDetail.findAll({
             where: {
                 user_id: user_id,
-                order_status: "Completed",
+                order_status_id: 5,
                 deleted_at: null,
                 deleted_flag: null
             },

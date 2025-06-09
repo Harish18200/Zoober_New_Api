@@ -9,6 +9,12 @@ const jwt = require('jsonwebtoken');
 const { Op, fn, col, literal } = require('sequelize');
 const { user } = require('../..');
 const Suggestion = require('../../models/Suggestion');
+const RiderNotification = require('../../models/RiderNotification');
+const Notifications = require('../../models/Notifications');
+const axios = require('axios');
+const FormData = require('form-data');
+
+
 
 
 
@@ -1007,7 +1013,191 @@ exports.driverListByStatus = async (req, res) => {
     }
 };
 
+exports.driverSentWhatsappOtp = async (req, res) => {
+
+
+    const mobile = req.body.mobile;
+
+    if (!mobile || mobile.length < 10) {
+        return res.status(400).json({ success: false, message: "Mobile number must be at least 10 digits" });
+    }
+
+    try {
+        const checkDriverMobile = await Ride.findOne({
+            where: { mobile: mobile }
+        });
+
+        if (checkDriverMobile) {
+            const randomOtp = Math.floor(1000 + Math.random() * 9000);
+            const notification = await Notifications.findOne({
+                where: { title: "OTPLogin" }
+            });
+
+            if (!notification) {
+                return res.status(404).json({ success: false, message: "Notification not found" });
+            }
+
+            const otpUpdate = await RiderNotification.create({
+                rider_id: checkDriverMobile.id,
+                notification_id: notification.id,
+                rider_otp: randomOtp
+            });
+
+            const url = "https://wtservices.ackrock.com/api/send/whatsapp";
+            const secretKey = "f3b630127a407ae9dba5206ad454dd2d88ecaae7";
+            const account = '1749049350aab3238922bcc25a6f606eb525ffdc566840600606b57';
+            const recipient = "+91" + checkDriverMobile.mobile;
+            const type = 'text';
+            const message = 'Welcome to Godago OTP:' + randomOtp;
+
+            try {
+                const form = new FormData();
+                form.append('secret', secretKey);
+                form.append('account', account);
+                form.append('recipient', recipient);
+                form.append('type', type);
+                form.append('message', message);
+
+                const response = await axios.post(url, form, {
+                    headers: form.getHeaders(),
+                });
+
+                return res.status(200).json({ success: true, message: "OTP sent", otp: randomOtp, rideId: otpUpdate.rider_id, id: otpUpdate.id });
+
+            } catch (error) {
+                if (error.response) {
+                    console.error("Error:", error.response.status, error.response.data);
+                    res.status(error.response.status).json({ success: false, error: error.response.data });
+                } else {
+                    console.error("Error:", error.message);
+                    res.status(500).json({ success: false, error: error.message });
+                }
+            }
 
 
 
+        } else {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+
+};
+
+exports.driverWhatsappOtpValidate = async (req, res) => {
+    const { id, rideId, otp } = req.body;
+
+    if (!id || !rideId || !otp) {
+        return res.status(400).json({ success: false, message: "All fields (id, rideId, otp) are required" });
+    }
+
+    try {
+        const getOtp = await RiderNotification.findOne({
+            where: {
+                id: id,
+                rider_id: rideId
+            }
+        });
+
+        if (!getOtp) {
+            return res.status(404).json({ success: false, message: "Rider notification not found" });
+        }
+
+        if (getOtp.rider_otp === otp) {
+
+            const ridedata = await Ride.findOne({ where: { id: rideId } });
+             const token = jwt.sign(
+            { id: ridedata.id, mobile: ridedata.mobile },
+            JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        const rideDetails = await RideDetails.findOne({ where: { ride_id: ridedata.id } });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            token,
+            user: {
+                id: ridedata.id,
+                mobile: ridedata.mobile,
+                fullname: `${ridedata.firstname} ${ridedata.lastname}`,
+                profile: ridedata.profile
+                    ? `http://192.168.1.63:3000/upload/images/${ridedata.profile}`
+                    : null,
+                totalRide: rideDetails?.total_ride || 0,
+                totalEarning: rideDetails?.earning || 0,
+                totalKilometer: rideDetails?.total_kilometer || 0,
+                totalHours: rideDetails?.total_hours || "00:00"
+            }
+        });
+
+
+            
+        } else {
+            return res.status(401).json({ success: false, message: "Invalid OTP" });
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+    }
+};
+
+
+exports.getRiderAllNotifications = async (req, res) => {
+    try {
+        const { rideId } = req.body;
+
+        if (!rideId) {
+            return res.status(400).json({
+                success: false,
+                message: 'rideId is required.'
+            });
+        }
+
+        const notifications = await RiderNotification.findAll({
+            where: { rider_id: rideId },
+            include: [
+                {
+                    model: Notifications,
+                    as: 'notifications',
+                    attributes: ['title', 'description', 'created_at']
+                }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+
+        if (!notifications || notifications.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No notifications found.'
+            });
+        }
+
+        const filteredData = notifications.map(n => ({
+            user_id: n.rider_id,
+            user_otp: n.rider_otp,
+            title: n.notifications?.title || null,
+            description: n.notifications?.description || null,
+            notification_created_at: n.notifications?.created_at || null
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: 'Rider notifications retrieved successfully.',
+            data: filteredData
+        });
+
+    } catch (error) {
+        console.error('Error fetching user notifications:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
 exports.fetchTotalActiveRides = fetchTotalActiveRides;
