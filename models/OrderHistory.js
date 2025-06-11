@@ -21,6 +21,11 @@ const OrderHistory = sequelize.define('order_histories', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
+  started_date: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+
     created_at: {
         type: DataTypes.DATE,
         allowNull: true,

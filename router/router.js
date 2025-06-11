@@ -48,16 +48,20 @@ router.post('/driverWhatsappOtpValidate',rideController.driverWhatsappOtpValidat
 //driver Api's
 
 router.post('/getRiderAllNotifications', rideController.getRiderAllNotifications);
+router.post('/driverDatewiseHistory', rideController.driverDatewiseHistory);
 
 
 
+//user Api 's
+router.post('/userSignUp', userController.userSignUp);
+router.post('/userLogin', userController.userLogin);  
 
 
 
 
 router.get('/supportList', adminController.supportList);
-router.post('/userLogin', userController.userLogin);  
-router.post('/userSignUp', userController.userSignUp);
+
+
 router.post('/rideSignUp', upload.single('profile'),rideController.rideSignUp);  
 router.post('/rideLogin', rideController.rideLogin);  
 router.post('/rideDashboard', rideController.rideDashboard);  

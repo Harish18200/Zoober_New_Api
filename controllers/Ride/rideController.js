@@ -13,7 +13,8 @@ const RiderNotification = require('../../models/RiderNotification');
 const Notifications = require('../../models/Notifications');
 const axios = require('axios');
 const FormData = require('form-data');
-
+const OrderHistory = require('../../models/OrderHistory');
+const moment = require('moment');
 
 
 
@@ -1200,4 +1201,67 @@ exports.getRiderAllNotifications = async (req, res) => {
         });
     }
 };
+exports.driverDatewiseHistory = async (req, res) => {
+    try {
+        const { rideId, date } = req.body;
+
+        if (!rideId || !date) {
+            return res.status(400).json({
+                success: false,
+                message: 'rideId and date are required.'
+            });
+        }
+
+        const startOfDay = moment(date).startOf('day').toDate();
+        const endOfDay = moment(date).endOf('day').toDate();
+
+        // Step 1: Fetch all OrderHistory entries for this ride and date
+        const orderHistories = await OrderHistory.findAll({
+            where: {
+                ride_id: rideId,
+                started_date: {
+                    [Op.between]: [startOfDay, endOfDay]
+                }
+            }
+        });
+
+        const filteredHistories = [];
+        let totalAmount = 0;
+
+        // Step 2: Loop through and filter based on OrderBooking
+        for (const history of orderHistories) {
+            const booking = await OrderBooking.findOne({
+                where: {
+                    id: history.order_id,
+                    order_status_id: 5
+                }
+            });
+
+            if (booking) {
+                filteredHistories.push(booking);
+                totalAmount += parseFloat(booking.amount || 0);
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Filtered rider history retrieved successfully.',
+            total_count: filteredHistories.length,
+            total_amount: totalAmount,
+            
+        });
+
+    } catch (error) {
+        console.error('Error fetching rider history:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+
+
+
 exports.fetchTotalActiveRides = fetchTotalActiveRides;

@@ -56,7 +56,10 @@ const User = sequelize.define('users', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-
+    user_status_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     created_at: {
         type: DataTypes.DATE,
         allowNull: true,

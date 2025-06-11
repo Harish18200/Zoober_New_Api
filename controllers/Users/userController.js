@@ -20,20 +20,34 @@ const PricingRules = require('../../models/PricingRules');
 const axios = require('axios');
 const FormData = require('form-data');
 const JWT_SECRET = process.env.JWT_SECRET;
-
 exports.userSignUp = async (req, res) => {
-    const { mobile, email, password, firstname, lastname, gender, dob, city, user_status } = req.body;
+    const {
+        mobile,
+        email,
+        password,
+        firstname,
+        lastname,
+        gender,
+        dob,
+        city,
+        userStatusId,
+        userStatus
+    } = req.body;
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
         return res.status(400).json({ success: false, message: 'Invalid email format.' });
     }
+
     const mobileRegex = /^\d{10}$/;
     if (!mobile || !mobileRegex.test(mobile)) {
         return res.status(400).json({ success: false, message: 'Mobile number must be 10 digits.' });
     }
+
     if (!password || password.length < 6) {
         return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
     }
+
     if (!firstname || firstname.trim() === '') {
         return res.status(400).json({ success: false, message: 'First name is required.' });
     }
@@ -49,9 +63,9 @@ exports.userSignUp = async (req, res) => {
             return res.status(409).json({ success: false, message: 'Mobile number already in use.' });
         }
 
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, 10);
         const user_uid = uuidv4();
+
         const newUser = await user.create({
             mobile,
             email,
@@ -62,14 +76,68 @@ exports.userSignUp = async (req, res) => {
             gender,
             dob,
             city: city || null,
-            user_status: user_status || "active",
+            user_status_id: userStatusId || 1,
+            user_status: userStatus || "Approval Pending"
         });
 
-        return res.status(201).json({
-            success: true,
-            message: 'User record created successfully.',
-            data: newUser
+        const generateOtp = Math.floor(1000 + Math.random() * 9000);
+
+        const notification = await Notifications.findOne({
+            where: { title: "OTPSignUp" }
         });
+
+        if (!notification) {
+            return res.status(404).json({ success: false, message: "Notification not found" });
+        }
+
+        const otpUpdate = await UserNotification.create({
+            user_id: newUser.id,
+            notification_id: notification.id,
+            user_otp: generateOtp
+        });
+
+
+        const url = "https://wtservices.ackrock.com/api/send/whatsapp";
+        const secretKey = "f3b630127a407ae9dba5206ad454dd2d88ecaae7";
+        const account = '1749049350aab3238922bcc25a6f606eb525ffdc566840600606b57';
+        const recipient = "+91" + newUser.mobile;
+        const type = 'text';
+        const message = 'Welcome to Godago signup OTP:' + generateOtp;
+
+        try {
+            const form = new FormData();
+            form.append('secret', secretKey);
+            form.append('account', account);
+            form.append('recipient', recipient);
+            form.append('type', type);
+            form.append('message', message);
+
+            const response = await axios.post(url, form, {
+                headers: form.getHeaders(),
+            });
+
+            return res.status(201).json({
+                success: true,
+                message: 'User record created successfully.',
+                data: {
+                    userId: newUser.id,
+                    otp: generateOtp,
+                    id: otpUpdate.id,
+                    mobile: newUser.mobile
+                }
+            });
+        } catch (error) {
+            if (error.response) {
+                console.error("Error:", error.response.status, error.response.data);
+                res.status(error.response.status).json({ success: false, error: error.response.data });
+            } else {
+                console.error("Error:", error.message);
+                res.status(500).json({ success: false, error: error.message });
+            }
+        }
+
+
+
 
     } catch (error) {
         console.error('Signup Error:', error);
@@ -80,7 +148,6 @@ exports.userSignUp = async (req, res) => {
         });
     }
 };
-
 
 
 
@@ -402,10 +469,13 @@ exports.sendWhatsappOtp = async (req, res) => {
 };
 
 exports.whatsappOtpValidate = async (req, res) => {
-    const { id, userId, otp } = req.body;
+    const { id, userId, otp, type } = req.body;
 
     if (!id || !userId || !otp) {
-        return res.status(400).json({ success: false, message: "All fields (id, userId, otp) are required" });
+        return res.status(400).json({
+            success: false,
+            message: "All fields (id, userId, otp) are required"
+        });
     }
 
     try {
@@ -417,40 +487,67 @@ exports.whatsappOtpValidate = async (req, res) => {
         });
 
         if (!getOtp) {
-            return res.status(404).json({ success: false, message: "User notification not found" });
+            return res.status(404).json({
+                success: false,
+                message: "User notification not found"
+            });
         }
 
-        if (getOtp.user_otp === otp) {
-
-            const userDetails = await user.findOne({ where: { id: userId } });
-
-
-            const token = jwt.sign(
-                { id: userDetails.id, mobile: userDetails.mobile },
-                process.env.JWT_SECRET,
-                { expiresIn: '1d' }
-            );
-
-            return res.status(200).json({
-                success: true,
-                message: 'Login successful',
-                token,
-                user: {
-                    id: userDetails.id,
-                    mobile: userDetails.mobile,
-                    firstName: userDetails.firstname,
-                    user_uid: userDetails.user_uid
-                }
-            });
-        } else {
+        if (getOtp.user_otp.toString() !== otp.toString()) {
             return res.status(401).json({ success: false, message: "Invalid OTP" });
         }
 
+        // If OTP is valid and type === 1, update the user status
+        if (type === 1) {
+            await user.update(
+                {
+                    user_status: "Active",
+                    user_status_id: 2
+                },
+                { where: { id: userId } }
+            );
+        }
+
+        const userDetails = await user.findOne({ where: { id: userId ,user_status_id:2 } });
+
+        if (!userDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found or has been deleted or not approved."
+            });
+        }
+
+        const token = jwt.sign(
+            {
+                id: userDetails.id,
+                mobile: userDetails.mobile
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            token,
+            user: {
+                id: userDetails.id,
+                mobile: userDetails.mobile,
+                firstName: userDetails.firstname,
+                user_uid: userDetails.user_uid
+            }
+        });
+
     } catch (error) {
         console.error("Error:", error);
-        return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message
+        });
     }
 };
+
 
 
 
@@ -627,6 +724,7 @@ exports.userLogin = async (req, res) => {
         const existingUser = await user.findOne({
             where: {
                 mobile,
+                user_status_id: 2,
                 deleted_flag: null,
                 deleted_at: null
             }
@@ -635,7 +733,7 @@ exports.userLogin = async (req, res) => {
         if (!existingUser) {
             return res.status(404).json({
                 success: false,
-                message: 'User not found or has been deleted.',
+                message: 'User not found, has been deleted, or is not approved.',
             });
         }
         const isMatch = await bcrypt.compare(password, existingUser.password);
@@ -1762,6 +1860,7 @@ exports.googleMap = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
 
 
 
