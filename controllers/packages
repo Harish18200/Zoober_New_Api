@@ -5,3 +5,7 @@ npm install multer
 npm install dotenv
 npm install uuid
 npm install axios form-data
+npm install sequelize
+npm install express
+npm install mysql2
+npm install ws

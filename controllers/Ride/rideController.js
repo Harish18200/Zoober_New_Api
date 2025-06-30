@@ -4,6 +4,7 @@ const RideDetails = require('../../models/RideDetails');
 const Vehicle = require('../../models/Vehicle');
 const Document = require('../../models/Document');
 const OrderBooking = require('../../models/OrderBookings');
+const UserReview = require('../../models/UserReview');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Op, fn, col, literal } = require('sequelize');
@@ -15,6 +16,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const OrderHistory = require('../../models/OrderHistory');
 const moment = require('moment');
+
 
 
 
@@ -372,8 +374,8 @@ exports.todayRevenue = async (req, res) => {
                 deleted_at: null,
                 order_status_id: 5,
                 ride_start_date: {
-                        [Op.between]: [startOfDay, endOfDay]
-                    }
+                    [Op.between]: [startOfDay, endOfDay]
+                }
             }
         });
 
@@ -825,25 +827,45 @@ exports.completedBookingRide = async (req, res) => {
         });
     }
 };
-exports.OrderCompletedChangeStatus = async (req, res) => {
-    const { orderId } = req.body;
 
-    if (!orderId) {
+const createUserReview = async ({ orderId, userId, riderId }) => {
+    if (!orderId || !userId || !riderId) {
+        throw new Error(`${!orderId ? 'orderId' : !userId ? 'userId' : 'riderId'} is required.`);
+    }
+
+    const newReview = await UserReview.create({
+        order_id: orderId,
+        user_id: userId,
+        rider_id: riderId,
+        review_type_status: 1,
+    });
+
+    return newReview;
+};
+
+
+
+exports.OrderCompletedChangeStatus = async (req, res) => {
+    const { orderId, userId, riderId } = req.body;
+
+    if (!orderId || !userId || !riderId) {
         return res.status(400).json({
             success: false,
-            message: 'orderId is required.'
+            message: `${!orderId ? 'orderId' : !userId ? 'userId' : 'riderId'} is required.`,
         });
     }
 
     try {
         const [updatedRows] = await OrderBooking.update(
             {
+                cash_type_status: 1,
                 order_status_id: 5,
                 order_status: "Completed"
             },
             {
                 where: {
                     id: orderId,
+                    user_id: userId,
                     deleted_at: null,
                     deleted_flag: null
                 }
@@ -857,19 +879,111 @@ exports.OrderCompletedChangeStatus = async (req, res) => {
             });
         }
 
+        const newReview = await createUserReview({ orderId, userId, riderId });
+
+        const notification = await Notifications.findOne({
+            where: { title: "RideCompleted" }
+        });
+
+        if (!notification) {
+            return res.status(404).json({ success: false, message: "Notification not found" });
+        }
+
+        const riderNotify = await RiderNotification.create({
+            rider_id: riderId,
+            notification_id: notification.id,
+
+        });
+
         return res.status(200).json({
             success: true,
-            message: 'Order status updated to Completed successfully.'
+            message: 'Order marked as completed and review submitted.',
+            review: newReview
         });
 
     } catch (error) {
-        console.error('Error completing booking ride:', error);
+        console.error('Error completing booking ride:', error.message);
         return res.status(500).json({
             success: false,
-            message: 'Server error while completing booking ride.'
+            message: error.message || 'Server error while completing booking ride.'
         });
     }
 };
+
+exports.retreiveAmountByUserId = async (req, res) => {
+    const { orderId, userId } = req.body;
+
+    if (!orderId) {
+        return res.status(400).json({
+            success: false,
+            message: 'orderId is required.'
+        });
+    }
+
+    if (!userId) {
+        return res.status(400).json({
+            success: false,
+            message: 'userId is required.'
+        });
+    }
+
+    try {
+        const userAmount = await OrderBooking.findOne({
+            where: {
+                id: orderId,
+                user_id: userId,
+                deleted_at: null,
+                deleted_flag: null
+            }
+        });
+
+        if (!userAmount) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found for the provided user.'
+            });
+        }
+
+        const userDetails = await fetchUserDetails(userId);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Amount retrieved successfully.',
+            userData: {
+                userId: userDetails.id,
+                firstname: userDetails.firstname,
+                lastname: userDetails.lastname,
+                mobile: userDetails.mobile,
+                amount: userAmount.amount
+            }
+        });
+
+
+    } catch (error) {
+        console.error('Error retrieving amount:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while retrieving amount.',
+            error: error.message
+        });
+    }
+};
+const fetchUserDetails = async (userId) => {
+    if (!userId) throw new Error('userId is required');
+
+    const userDetails = await User.findOne({
+        where: {
+            id: userId,
+            deleted_at: null,
+            deleted_flag: null
+        }
+    });
+
+    return userDetails;
+};
+
+
+
 exports.getAllDrivers = async (req, res) => {
     try {
         const foundDrivers = await Ride.findAll({
@@ -1109,34 +1223,34 @@ exports.driverWhatsappOtpValidate = async (req, res) => {
         if (getOtp.rider_otp === otp) {
 
             const ridedata = await Ride.findOne({ where: { id: rideId } });
-             const token = jwt.sign(
-            { id: ridedata.id, mobile: ridedata.mobile },
-            JWT_SECRET,
-            { expiresIn: '1d' }
-        );
+            const token = jwt.sign(
+                { id: ridedata.id, mobile: ridedata.mobile },
+                JWT_SECRET,
+                { expiresIn: '1d' }
+            );
 
-        const rideDetails = await RideDetails.findOne({ where: { ride_id: ridedata.id } });
+            const rideDetails = await RideDetails.findOne({ where: { ride_id: ridedata.id } });
 
-        return res.status(200).json({
-            success: true,
-            message: 'Login successful',
-            token,
-            user: {
-                id: ridedata.id,
-                mobile: ridedata.mobile,
-                fullname: `${ridedata.firstname} ${ridedata.lastname}`,
-                profile: ridedata.profile
-                    ? `http://192.168.1.63:3000/upload/images/${ridedata.profile}`
-                    : null,
-                totalRide: rideDetails?.total_ride || 0,
-                totalEarning: rideDetails?.earning || 0,
-                totalKilometer: rideDetails?.total_kilometer || 0,
-                totalHours: rideDetails?.total_hours || "00:00"
-            }
-        });
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                token,
+                user: {
+                    id: ridedata.id,
+                    mobile: ridedata.mobile,
+                    fullname: `${ridedata.firstname} ${ridedata.lastname}`,
+                    profile: ridedata.profile
+                        ? `http://192.168.1.63:3000/upload/images/${ridedata.profile}`
+                        : null,
+                    totalRide: rideDetails?.total_ride || 0,
+                    totalEarning: rideDetails?.earning || 0,
+                    totalKilometer: rideDetails?.total_kilometer || 0,
+                    totalHours: rideDetails?.total_hours || "00:00"
+                }
+            });
 
 
-            
+
         } else {
             return res.status(401).json({ success: false, message: "Invalid OTP" });
         }
@@ -1248,7 +1362,7 @@ exports.driverDatewiseHistory = async (req, res) => {
             message: 'Filtered rider history retrieved successfully.',
             total_count: filteredHistories.length,
             total_amount: totalAmount,
-            
+
         });
 
     } catch (error) {

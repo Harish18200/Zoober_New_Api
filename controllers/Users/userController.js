@@ -19,6 +19,8 @@ const { v4: uuidv4 } = require('uuid');
 const PricingRules = require('../../models/PricingRules');
 const axios = require('axios');
 const FormData = require('form-data');
+const UserReview = require('../../models/UserReview');
+
 const JWT_SECRET = process.env.JWT_SECRET;
 exports.userSignUp = async (req, res) => {
     const {
@@ -290,6 +292,69 @@ exports.addInsurance = async (req, res) => {
     }
 };
 
+
+exports.userReviewAndRating = async (req, res) => {
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'userId is required' });
+    }
+
+    try {
+        const userReview = await UserReview.findOne({
+            where: {
+                user_id: userId,
+                review_type_status: 1
+            }
+        });
+
+        if (!userReview) {
+            return res.status(404).json({ success: false, message: 'No review found' });
+        }
+
+        const riderData = await getRiderDetails(userReview.rider_id); 
+        return res.status(200).json({
+            success: true,
+            message: 'User review and rider details retrieved successfully',
+            data: {
+                
+                rider: riderData
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+const getRiderDetails = async (riderId) => {
+    if (!riderId) throw new Error('riderId is required');
+
+    const rider = await Ride.findOne({
+        where: {
+            id: riderId,
+            deleted_at: null,
+            deleted_flag: null,
+        }
+    });
+
+    if (!rider) return null;
+
+    return {
+        riderId: rider.id,
+        profile: rider.profile,
+        mobile: rider.mobile,
+        firstName: rider.firstname,
+        lastName: rider.lastname,
+    };
+};
+
+
+
 exports.reteriveInsurances = async (req, res) => {
     try {
         const insurances = await Insurance.findAll({
@@ -508,7 +573,7 @@ exports.whatsappOtpValidate = async (req, res) => {
             );
         }
 
-        const userDetails = await user.findOne({ where: { id: userId ,user_status_id:2 } });
+        const userDetails = await user.findOne({ where: { id: userId, user_status_id: 2 } });
 
         if (!userDetails) {
             return res.status(404).json({

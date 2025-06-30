@@ -1,0 +1,73 @@
+1)  method:post
+ url :http://localhost:3000/api/retreiveAmountByUserId
+ parameter :{
+      "orderId":92, (integer)
+    "userId":234 (integer)
+ }
+ output
+ {
+    {
+    "success": true,
+    "message": "Amount retrieved successfully.",
+    "userData": {
+        "userId": 226, (integer)
+        "firstname": "davi",  (string)
+        "lastname": "kumar",  (string)
+        "mobile": "8838721805",  (string)
+        "amount": "55"   (string)
+    }
+}
+ }
+
+
+
+
+ 2)  method:post
+ url :http://localhost:3000/api/OrderCompletedChangeStatus
+ parameter :{
+    "orderId":72, (integer)
+    "userId":25, (integer)
+    "riderId":15 (integer)
+}
+ output
+ {
+   {
+    "success": true,
+    "message": "Order marked as completed and review submitted.",
+    "review": {
+        "created_at": "2025-06-30T14:24:11.792Z", (string)
+        "updated_at": "2025-06-30T14:24:11.792Z", (string)
+        "id": 6, (integer)
+        "order_id": 72, (integer)
+        "user_id": 25, (integer)
+        "rider_id": 15, (integer)
+        "review_type_status": 1 (integer)
+    }
+}
+ }
+
+
+
+ 
+ 2)  method:post
+ url :http://localhost:3000/api/userReviewAndRating
+ parameter :{
+    "userId":235, (integer)
+}
+ output
+ {
+   {
+    "success": true,
+    "message": "User review and rider details retrieved successfully",
+    "data": {
+        "rider": {
+            "riderId": 15, (integer)
+            "profile": null, (string)
+            "mobile": "1234567890", (string)
+            "firstName": "muthu", (string)
+            "lastName": "j" (string)
+        }
+    }
+}
+}
+ 

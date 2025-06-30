@@ -56,6 +56,10 @@ const OrderBookings = sequelize.define('order_bookings', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
+     cash_type_status: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     otp_status: {
         type: DataTypes.INTEGER,
         allowNull: true,

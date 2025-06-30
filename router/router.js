@@ -74,6 +74,8 @@ router.post('/markRiderStatus',rideController.markRiderStatus);   // New Api
 router.get('/totalRidesDetails',rideController.totalRidesDetails);  // New Api
 router.post('/completedBookingRide',rideController.completedBookingRide);  // New Api
 router.post('/OrderCompletedChangeStatus',rideController.OrderCompletedChangeStatus); // New Api
+router.post('/retreiveAmountByUserId',rideController.retreiveAmountByUserId); // New Api
+
 
 router.post('/activeVehicle', verifyRideToken,rideController.activeVehicle);
 router.post('/rideVehicleList', verifyRideToken,rideController.rideVehicleList);   
@@ -97,6 +99,7 @@ router.post('/userRidesHistory', userController.userRidesHistory);
 router.post('/addUserDetails', verifyToken, userController.addUserDetails);
 router.post('/updateUserDetails', verifyToken, userController.updateUserDetails);
 router.post('/deletedUserDetails', verifyToken, userController.deletedUserDetails);
+router.post('/userReviewAndRating', userController.userReviewAndRating);
 
 
 
