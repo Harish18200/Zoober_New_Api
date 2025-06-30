@@ -20,6 +20,7 @@ const PricingRules = require('../../models/PricingRules');
 const axios = require('axios');
 const FormData = require('form-data');
 const UserReview = require('../../models/UserReview');
+const RideDetails = require('../../models/RideDetails');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 exports.userSignUp = async (req, res) => {
@@ -312,12 +313,11 @@ exports.userReviewAndRating = async (req, res) => {
             return res.status(404).json({ success: false, message: 'No review found' });
         }
 
-        const riderData = await getRiderDetails(userReview.rider_id); 
+        const riderData = await getRiderDetails(userReview.rider_id);
         return res.status(200).json({
             success: true,
             message: 'User review and rider details retrieved successfully',
             data: {
-                
                 rider: riderData
             }
         });
@@ -330,6 +330,52 @@ exports.userReviewAndRating = async (req, res) => {
         });
     }
 };
+exports.userFeedbackForRider = async (req, res) => {
+    const { userId, riderId, rating, reviews, orderId } = req.body;
+
+    if (!userId || !riderId || !orderId) {
+        return res.status(400).json({
+            success: false,
+            message: 'userId, riderId, and orderId are required'
+        });
+    }
+
+    try {
+        const [updatedRows] = await OrderHistory.update(
+            {
+                reviews: reviews ?? null,
+                rating: rating ?? null
+            },
+            {
+                where: {
+                    user_id: userId,
+                    order_id: orderId,
+                    ride_id: riderId
+                }
+            }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({ success: false, message: 'No matching order history found to update' });
+        }
+
+
+        return res.status(200).json({
+            success: true,
+            message: 'Feedback submitted  successfully',
+            
+        });
+
+    } catch (error) {
+        console.error('Error updating feedback:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while submitting feedback',
+            error: error.message
+        });
+    }
+};
+
 
 const getRiderDetails = async (riderId) => {
     if (!riderId) throw new Error('riderId is required');

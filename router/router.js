@@ -100,6 +100,8 @@ router.post('/addUserDetails', verifyToken, userController.addUserDetails);
 router.post('/updateUserDetails', verifyToken, userController.updateUserDetails);
 router.post('/deletedUserDetails', verifyToken, userController.deletedUserDetails);
 router.post('/userReviewAndRating', userController.userReviewAndRating);
+router.post('/userFeedbackForRider', userController.userFeedbackForRider);
+
 
 
 

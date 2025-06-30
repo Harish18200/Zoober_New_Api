@@ -1,5 +1,5 @@
 1)  method:post
- url :http://localhost:3000/api/retreiveAmountByUserId
+ url :https://zoober.ackrock.com/api/retreiveAmountByUserId
  parameter :{
       "orderId":92, (integer)
     "userId":234 (integer)
@@ -23,7 +23,7 @@
 
 
  2)  method:post
- url :http://localhost:3000/api/OrderCompletedChangeStatus
+ url :https://zoober.ackrock.com/api/OrderCompletedChangeStatus
  parameter :{
     "orderId":72, (integer)
     "userId":25, (integer)
@@ -49,8 +49,8 @@
 
 
  
- 2)  method:post
- url :http://localhost:3000/api/userReviewAndRating
+ 3)  method:post
+ url :https://zoober.ackrock.com/api/userReviewAndRating
  parameter :{
     "userId":235, (integer)
 }
@@ -68,6 +68,27 @@
             "lastName": "j" (string)
         }
     }
+}
+}
+ 
+
+
+
+
+ 4)  method:post
+ url :https://zoober.ackrock.com/api/userFeedbackForRider
+ parameter :{
+    "userId":22, (integer)
+    "orderId":66, (integer)
+    "riderId":9, (integer)
+    "rating":1, (integer)
+    "reviews":"Good" (string)
+}
+ output
+ {
+   {
+    "success": true,
+    "message": "Feedback submitted  successfully" (string)
 }
 }
  

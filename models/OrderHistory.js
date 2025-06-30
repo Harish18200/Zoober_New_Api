@@ -16,7 +16,14 @@ const OrderHistory = sequelize.define('order_histories', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-
+ reviews: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+     rating: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     ride_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
