@@ -22,6 +22,7 @@ const FormData = require('form-data');
 const UserReview = require('../../models/UserReview');
 const RideDetails = require('../../models/RideDetails');
 
+
 const JWT_SECRET = process.env.JWT_SECRET;
 exports.userSignUp = async (req, res) => {
     const {
@@ -294,42 +295,9 @@ exports.addInsurance = async (req, res) => {
 };
 
 
-exports.userReviewAndRating = async (req, res) => {
-    const { userId } = req.body;
 
-    if (!userId) {
-        return res.status(400).json({ success: false, message: 'userId is required' });
-    }
 
-    try {
-        const userReview = await UserReview.findOne({
-            where: {
-                user_id: userId,
-                review_type_status: 1
-            }
-        });
 
-        if (!userReview) {
-            return res.status(404).json({ success: false, message: 'No review found' });
-        }
-
-        const riderData = await getRiderDetails(userReview.rider_id);
-        return res.status(200).json({
-            success: true,
-            message: 'User review and rider details retrieved successfully',
-            data: {
-                rider: riderData
-            }
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
-};
 exports.userFeedbackForRider = async (req, res) => {
     const { userId, riderId, rating, reviews, orderId } = req.body;
 
@@ -363,7 +331,7 @@ exports.userFeedbackForRider = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: 'Feedback submitted  successfully',
-            
+
         });
 
     } catch (error) {
@@ -375,31 +343,6 @@ exports.userFeedbackForRider = async (req, res) => {
         });
     }
 };
-
-
-const getRiderDetails = async (riderId) => {
-    if (!riderId) throw new Error('riderId is required');
-
-    const rider = await Ride.findOne({
-        where: {
-            id: riderId,
-            deleted_at: null,
-            deleted_flag: null,
-        }
-    });
-
-    if (!rider) return null;
-
-    return {
-        riderId: rider.id,
-        profile: rider.profile,
-        mobile: rider.mobile,
-        firstName: rider.firstname,
-        lastName: rider.lastname,
-    };
-};
-
-
 
 exports.reteriveInsurances = async (req, res) => {
     try {
@@ -659,9 +602,6 @@ exports.whatsappOtpValidate = async (req, res) => {
     }
 };
 
-
-
-
 exports.totalUsers = async (req, res) => {
     try {
         const totalUsers = await user.count();
@@ -857,9 +797,12 @@ exports.userLogin = async (req, res) => {
             { expiresIn: '1d' }
         );
 
+       
+
+
         return res.status(200).json({
             success: true,
-            message: 'Login successful',
+            message: 'Login successfully',
             token,
             user: {
                 id: existingUser.id,
@@ -1467,17 +1410,55 @@ exports.userRidesHistory = async (req, res) => {
 
 exports.sendUserBookingOtp = async (req, res) => {
     try {
-        const { userId, bookingId } = req.body;
+        const { userId, bookingId  ,rideId} = req.body;
 
         if (!userId) {
             return res.status(400).json({ success: false, message: 'userId is required' });
         }
-
         if (!bookingId) {
             return res.status(400).json({ success: false, message: 'bookingId is required' });
         }
+         if (!rideId) {
+            return res.status(400).json({ success: false, message: 'rideId is required' });
+        }
+
+        const getMobile = await user.findOne({
+            where: {
+                id: userId,
+                deleted_at: null,
+                deleted_flag: null
+            }
+        });
+
+        if (!getMobile) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found or mobile number is missing.'
+            });
+        }
+
 
         const random5Digit = Math.floor(1000 + Math.random() * 9000);
+
+
+        const url = "https://wtservices.ackrock.com/api/send/whatsapp";
+        const secretKey = "f3b630127a407ae9dba5206ad454dd2d88ecaae7";
+        const account = "1749049350aab3238922bcc25a6f606eb525ffdc566840600606b57";
+        const recipient = "+91" + getMobile.mobile;
+        const type = 'text';
+        const message = `Welcome to Godago OTP: ${random5Digit}`;
+
+        const form = new FormData();
+        form.append('secret', secretKey);
+        form.append('account', account);
+        form.append('recipient', recipient);
+        form.append('type', type);
+        form.append('message', message);
+
+        const response = await axios.post(url, form, {
+            headers: form.getHeaders(),
+        });
+
 
         const [updated] = await OrderDetail.update(
             {
@@ -1500,6 +1481,11 @@ exports.sendUserBookingOtp = async (req, res) => {
                 message: 'Booking not found or update failed.'
             });
         }
+        await OrderHistory.create({
+            user_id: userId,
+            order_id: bookingId,
+            ride_id: rideId
+        });
 
         const notification = await Notifications.findOne({
             where: { title: 'DriverSendOTP' }
@@ -1511,6 +1497,7 @@ exports.sendUserBookingOtp = async (req, res) => {
                 message: 'Notification with title "DriverSendOTP" not found.'
             });
         }
+
         await UserNotification.create({
             user_id: userId,
             notification_id: notification.id,
@@ -1588,15 +1575,6 @@ exports.bookingOtpValidateUser = async (req, res) => {
             user_id: userId,
             notification_id: notification.id
         });
-
-
-        await OrderHistory.create({
-            user_id: userId,
-            order_id: bookingId,
-            ride_id: rideId
-        });
-
-
         return res.status(200).json({
             success: true,
             message: 'active Booking',

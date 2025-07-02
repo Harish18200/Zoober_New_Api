@@ -70,7 +70,6 @@ router.post('/addOrUpdateRideDetails',rideController.addOrUpdateRideDetails);
 router.get('/totalOnlineRide',rideController.totalOnlineRide);  
 
 
-router.post('/markRiderStatus',rideController.markRiderStatus);   // New Api
 router.get('/totalRidesDetails',rideController.totalRidesDetails);  // New Api
 router.post('/completedBookingRide',rideController.completedBookingRide);  // New Api
 router.post('/OrderCompletedChangeStatus',rideController.OrderCompletedChangeStatus); // New Api
@@ -99,13 +98,10 @@ router.post('/userRidesHistory', userController.userRidesHistory);
 router.post('/addUserDetails', verifyToken, userController.addUserDetails);
 router.post('/updateUserDetails', verifyToken, userController.updateUserDetails);
 router.post('/deletedUserDetails', verifyToken, userController.deletedUserDetails);
-router.post('/userReviewAndRating', userController.userReviewAndRating);
 router.post('/userFeedbackForRider', userController.userFeedbackForRider);
 
-
-
-
 router.post('/sendUserBookingOtp', userController.sendUserBookingOtp); // New Api
+
 router.post('/bookingOtpValidateUser', userController.bookingOtpValidateUser); // New Api
 router.post('/priceUpdateUserBooking', userController.priceUpdateUserBooking); // New Api
 router.post('/estimatesListUserBooking', userController.estimatesListUserBooking); // New Api
