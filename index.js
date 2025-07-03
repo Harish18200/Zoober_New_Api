@@ -49,6 +49,42 @@ module.exports = {
   OrderBooking
 };
 
+async function UserProcessingRideDetails(userId, orderId) {
+  if (!userId) {
+    return { success: false, message: 'userId is required' };
+  }
+
+  if (!orderId) {
+    return { success: false, message: 'orderId is required' };
+  }
+
+  try {
+    const orderDetails = await OrderBooking.findOne({
+      where: {
+        user_id: userId,
+        id: orderId,
+        otp_status: 2,
+        order_status_id: 4,
+      },
+    });
+
+    if (!orderDetails) {
+      return { success: false, message: 'No order details found' };
+    }
+
+    return {
+      success: true,
+      message: 'Order details retrieved successfully',
+      data: orderDetails,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Server error',
+      error: error.message || 'Unknown error',
+    };
+  }
+}
 
 
 async function getUserReviewAndRating(userId) {
@@ -362,7 +398,29 @@ wss.on('connection', (socket) => {
           }));
         }
       }
+      else if (event === 'UserProcessingRideDetails') {
+        try {
+          const userId = parsed.data?.userId;
+          const orderId = parsed.data?.orderId;
 
+
+          if (!userId || !orderId) {
+            throw new Error('One or more required fields are missing');
+          }
+
+          const response = await UserProcessingRideDetails(userId, orderId);
+
+          socket.send(JSON.stringify({
+            event: 'UserProcessingRideDetails',
+            data: response
+          }));
+        } catch (err) {
+          socket.send(JSON.stringify({
+            event: 'error',
+            message: err.message
+          }));
+        }
+      }
 
       else {
         socket.send(JSON.stringify({
