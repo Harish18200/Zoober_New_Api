@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
+const DocumentType = require('./DocumentType');
 
 const Document = sequelize.define('documents', {
     id: {
@@ -11,11 +12,23 @@ const Document = sequelize.define('documents', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
+    document_type_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+     admin_approval_status: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
     name: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
-    photo: {
+    front_side_file_path: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    back_side_file_path: {
         type: DataTypes.TEXT,
         allowNull: true,
     },
@@ -29,7 +42,7 @@ const Document = sequelize.define('documents', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
-    
+
     created_at: {
         type: DataTypes.DATE,
         allowNull: true,
@@ -50,5 +63,8 @@ const Document = sequelize.define('documents', {
     tableName: 'documents',
     timestamps: false,
 });
-
+Document.belongsTo(DocumentType, {
+    foreignKey: 'document_type_id',
+    as: 'documentType'
+});
 module.exports = Document;

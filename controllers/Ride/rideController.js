@@ -15,6 +15,8 @@ const Notifications = require('../../models/Notifications');
 const axios = require('axios');
 const FormData = require('form-data');
 const OrderHistory = require('../../models/OrderHistory');
+const DocumentType = require('../../models/DocumentType');
+
 const moment = require('moment');
 
 
@@ -166,6 +168,21 @@ exports.totalOnlineRide = async (req, res) => {
         return res.status(200).json({ success: true, totalUsers });
     } catch (error) {
         console.error('Error fetching user count:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+exports.documentTypes = async (req, res) => {
+    try {
+        const documents = await DocumentType.findAll({
+            where: {
+
+                deleted_at: null,
+                status: 1
+            }
+        });
+        return res.status(200).json({ success: true, documents });
+    } catch (error) {
+        console.error('Error fetching documents list:', error);
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
@@ -492,28 +509,29 @@ exports.rideVehicleList = async (req, res) => {
     }
 };
 exports.addDocument = async (req, res) => {
+    const { ride_id, card_number, expired_date, name, document_type_id } = req.body;
 
-    const ride_id = req.body.ride_id;
-    const card_number = req.body.card_number;
-    const expired_date = req.body.expired_date;
-    const name = req.body.name;
-
-    if (!ride_id || !card_number) {
+    if (!ride_id) {
         return res.status(400).json({
             success: false,
-            message: 'ride_id and card_number are required.'
+            message: 'ride_id is required.'
         });
     }
 
     try {
-        console.log('Uploaded file:', req.file);
+        const frontFile = req.files?.front_side_file?.[0];
+        const backFile = req.files?.back_side_file?.[0];
+
         const documentData = {
             ride_id,
             card_number,
             expired_date,
             name,
-            photo: req.file ? req.file.filename : null
+            document_type_id,
+            front_side_file_path: frontFile ? frontFile.path : null,
+            back_side_file_path: backFile ? backFile.path : null,
         };
+
         const newDocument = new Document(documentData);
         const savedDocument = await newDocument.save();
 
@@ -531,47 +549,78 @@ exports.addDocument = async (req, res) => {
         });
     }
 };
+
 exports.listDocument = async (req, res) => {
-    const { ride_id } = req.body;
+  const { ride_id } = req.body;
 
-    if (!ride_id) {
-        return res.status(400).json({
-            success: false,
-            message: 'ride_id is required.'
-        });
-    }
+  if (!ride_id) {
+    return res.status(400).json({
+      success: false,
+      message: 'ride_id is required.'
+    });
+  }
 
-    try {
-        const fetchDocument = await Document.findAll({
-            where: {
-                ride_id: ride_id,
-                deleted_at: null
-            }
-        });
+  try {
+    const fetchDocument = await Document.findAll({
+      where: {
+        ride_id: ride_id,
+        deleted_at: null
+      },
+      attributes: [
+        'id',
+        'ride_id',
+        'document_type_id',
+        'admin_approval_status',
+        'back_side_file_path',
+        'card_number',
+        'expired_date',
+        'status'
+      ],
+      include: [
+        {
+          model: DocumentType,
+          as: 'documentType',
+          required: false,
+          where: {
+            deleted_at: null,
+            status: 1
+          },
+          attributes: ['type_name']
+        }
+      ]
+    });
 
-        const baseUrl = "https://zoober.ackrock.com/upload/documents/";
+    const baseUrl = "https://zoober.ackrock.com/upload/documents/";
 
-        const updatedDocuments = fetchDocument.map(doc => {
-            return {
-                ...doc.dataValues,
-                photo: doc.photo ? baseUrl + doc.photo : baseUrl
-            };
-        });
+    const updatedDocuments = fetchDocument.map(doc => ({
+      id: doc.id,
+      ride_id: doc.ride_id,
+      document_type_id: doc.document_type_id,
+      admin_approval_status: doc.admin_approval_status,
+      back_side_file_path: doc.back_side_file_path
+        ? baseUrl + doc.back_side_file_path.replace(/^upload[\\/]+documents[\\/]+/, '')
+        : null,
+      card_number: doc.card_number,
+      expired_date: doc.expired_date,
+      status: doc.status,
+      type_name: doc.documentType?.type_name || null
+    }));
 
-        return res.status(200).json({
-            success: true,
-            message: 'Documents fetched successfully',
-            data: updatedDocuments
-        });
+    return res.status(200).json({
+      success: true,
+      message: 'Documents fetched successfully',
+      data: updatedDocuments
+    });
 
-    } catch (error) {
-        console.error('Error fetching documents:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Server error while fetching documents'
-        });
-    }
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching documents'
+    });
+  }
 };
+
 exports.getOrderDetailById = async (req, res) => {
     const { id } = req.body;
     if (!id) {
