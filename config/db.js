@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize');
-const sequelize = new Sequelize('zooberride', 'root', '', {
+const sequelize = new Sequelize('godago', 'root', '', {
   host: 'localhost',
   dialect: 'mysql',
   logging: false,
@@ -16,3 +16,5 @@ sequelize.authenticate()
     });
 
 module.exports = sequelize;
+
+

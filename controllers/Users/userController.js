@@ -1115,7 +1115,6 @@ exports.userOrderBooking = async (req, res) => {
             pickup_longitude,
             drop_latitude,
             drop_longitude,
-            pickup_start_datetime,
             pickup_location,
             drop_location,
             suggestion_id,
@@ -1464,7 +1463,7 @@ exports.sendUserBookingOtp = async (req, res) => {
             {
                 otp: random5Digit,
                 otp_status: '1',
-                order_status: 'OTP Processing',
+                order_status: 'OTP Processing', 
                 order_status_id: 3
             },
             {

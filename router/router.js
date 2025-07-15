@@ -64,7 +64,7 @@ router.get('/supportList', adminController.supportList);
 router.post('/rideSignUp', upload.single('profile'), rideController.rideSignUp);
 router.post('/rideLogin', rideController.rideLogin);
 router.post('/rideDashboard', rideController.rideDashboard);
-router.post('/addVehicle', verifyRideToken, rideController.addVehicle);
+router.post('/addVehicle', rideController.addVehicle);
 router.post('/addOrUpdateRideDetails', rideController.addOrUpdateRideDetails);
 router.get('/totalOnlineRide', rideController.totalOnlineRide);
 
@@ -77,7 +77,7 @@ router.get('/documentTypes', rideController.documentTypes);
 
 
 router.post('/activeVehicle', verifyRideToken, rideController.activeVehicle);
-router.post('/rideVehicleList', verifyRideToken, rideController.rideVehicleList);
+router.post('/rideVehicleList', rideController.rideVehicleList);
 router.post(
     '/addDocument',
     document.fields([

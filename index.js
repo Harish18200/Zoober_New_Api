@@ -16,6 +16,12 @@ const http = require('http');
 const WebSocket = require('ws');
 const UserReview = require('./models/UserReview');
 const OrderDetail = require('./models/OrderBookings');
+const mysql = require('mysql2');
+const Document = require('./models/Document');
+const DocumentType = require('./models/DocumentType');
+const { Op } = require('sequelize');
+const { differenceInMinutes, isBefore, isSameDay } = require('date-fns')
+
 
 
 const server = http.createServer(app);
@@ -29,9 +35,6 @@ RideDetails.belongsTo(Ride, { foreignKey: 'ride_id', targetKey: 'id' });
 
 Ride.hasOne(Vehicle, { foreignKey: 'ride_id', sourceKey: 'id' });
 Vehicle.belongsTo(Ride, { foreignKey: 'ride_id', targetKey: 'id' });
-
-// OrderHistory.hasOne(OrderBooking, { foreignKey: 'id', sourceKey: 'order_id' });
-// OrderBooking.belongsTo(OrderHistory, { foreignKey: 'order_id', targetKey: 'id' });
 
 User.hasOne(OrderHistory, { foreignKey: 'user_id', sourceKey: 'id' });
 OrderHistory.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' });
@@ -85,8 +88,6 @@ async function UserProcessingRideDetails(userId, orderId) {
     };
   }
 }
-
-
 async function getUserReviewAndRating(userId) {
   if (!userId) {
     return { success: false, message: 'userId is required' };
@@ -205,7 +206,6 @@ async function userOrderAccpetedDriverDetails(userId) {
     };
   }
 }
-
 async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitude, location) {
   if (!rideId) {
     return { success: false, message: 'RideId is required.' };
@@ -233,7 +233,24 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
     if (!existingRide) {
       return { success: false, message: 'Ride not found.' };
     }
-
+    const msterDoc = await DocumentType.findAll({ where: { status: 1 } });
+    if (!msterDoc || msterDoc.length === 0) {
+      return { success: false, message: 'No document types found.' };
+    }
+    for (const docType of msterDoc) {
+      const exists = await Document.findOne({
+        where: {
+          ride_id: rideId,
+          document_type_id: docType.id
+        }
+      });
+      if (!exists) {
+        return {
+          success: false,
+          message: `Missing document for type: ${docType.type_name}`
+        };
+      }
+    }
     await existingRide.update({ latitude, longitude, location });
 
     if (rideStatus === "offline") {
@@ -277,9 +294,25 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
     if (rideStatus === "online") {
       await Ride.update({ status: rideStatus, working_hour: new Date() }, { where: { id: rideId } });
 
+
+      const activeVehicle = await Vehicle.findOne({
+        where: {
+          ride_id: rideId,
+          status: 1,
+          suggestion_id: {
+            [Op.ne]: null
+          }
+        }
+
+      });
+      if (!activeVehicle) {
+        return { success: false, message: 'Vehicle  not found.' };
+      }
+
       const bookingList = await OrderBooking.findAll({
         where: {
           order_status_id: 2,
+          suggestion_id: activeVehicle.suggestion_id,
           deleted_flag: null,
           deleted_at: null
         },
@@ -341,22 +374,29 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
 }
 
 
+
+
+const clients = new Set();
+
+
 wss.on('connection', (socket) => {
   console.log('🟢 WebSocket connected');
+  clients.add(socket);
+
 
   socket.on('message', async (message) => {
     try {
       const parsed = JSON.parse(message);
       const event = parsed.event;
 
-      if (event === 'getUserReview') {
-        const userId = parsed.data?.userId;
-        if (!userId) throw new Error('userId is missing');
+      if (event === 'getRideDetailsByOrderId') {
+        const orderId = parsed.data?.orderId;
+        if (!orderId) throw new Error('orderId is missing');
 
-        const response = await getUserReviewAndRating(userId);
+        const response = await fetchFullRideDetailsByOrderId(orderId);
 
         socket.send(JSON.stringify({
-          event: 'userReviewResponse',
+          event: 'getRideDetailsByOrderId',
           data: response,
         }));
 
@@ -422,6 +462,7 @@ wss.on('connection', (socket) => {
         }
       }
 
+
       else {
         socket.send(JSON.stringify({
           event: 'error',
@@ -430,7 +471,7 @@ wss.on('connection', (socket) => {
       }
 
     } catch (err) {
-      console.error('❌ WebSocket Error:', err.message);
+      console.error(' WebSocket Error:', err.message);
       socket.send(JSON.stringify({
         event: 'error',
         message: err.message || 'Invalid message format or internal error',
@@ -439,8 +480,167 @@ wss.on('connection', (socket) => {
   });
 
 
+
+  setInterval(async () => {
+    try {
+  console.log('teah')
+      const orders = await OrderBooking.findAll({
+        where: { order_status_id: 2 },
+        attributes: ['id', 'user_id', 'created_at']
+      });
+
+      const now = new Date();
+      const todayDate = now.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+
+      for (const order of orders) {
+        const createdAt = new Date(order.created_at);
+        const createdDate = createdAt.toISOString().split('T')[0];
+
+        if (createdDate < todayDate) {
+          // Past date – always expired
+          await OrderBooking.update(
+            {
+              order_status: 'expired',
+              order_status_id: 6
+            },
+            { where: { id: order.id } }
+          );
+          console.log(`Order ${order.id} marked as expired (past date)`);
+
+        } else if (createdDate === todayDate) {
+          const createdHour = createdAt.getUTCHours();
+          console.log('createdHour,createdHour', createdHour);
+          const createdMinute = createdAt.getUTCMinutes();
+          console.log('createdMinute', createdMinute);
+
+          const nowHour = now.getHours();
+          console.log('nowHour,nowHour', nowHour);
+          const nowMinute = now.getMinutes();
+          console.log('nowMinute', nowMinute);
+
+          console.log(`Order ${order.id} created at ${createdHour}:${createdMinute}, now is ${nowHour}:${nowMinute}`);
+
+          if (createdHour < nowHour) {
+            // More than an hour old → expired
+            await OrderBooking.update(
+              {
+                order_status: 'expired',
+                order_status_id: 6
+              },
+              { where: { id: order.id } }
+            );
+            console.log(`Order ${order.id} marked as expired (hour old)`);
+
+          } else if (createdHour === nowHour) {
+
+
+            if (nowMinute - createdMinute >= 3) {
+              // Same hour but 3+ minutes older → expired
+              await OrderBooking.update(
+                {
+                  order_status: 'expired',
+                  order_status_id: 6
+                },
+                { where: { id: order.id } }
+              );
+              console.log(`Order ${order.id} marked as expired (>= 3 minutes old)`);
+            } else {
+              console.log(`Order ${order.id} is from today and less than 3 minutes old`);
+            }
+
+          } else {
+            // Created time is in the future within same day
+            console.log(`Order ${order.id} is from later today – not expired yet`);
+          }
+
+        } else {
+          // Future date
+          console.log(`Order ${order.id} is from the future — skipping`);
+        }
+      }
+
+
+
+    } catch (err) {
+      console.error('Sequelize polling error:', err);
+    }
+  }, 1000);
+
+
+  setInterval(async () => {
+    try {
+      const [results] = await sequelize.query(`
+      SELECT * FROM review_user_change_log 
+      WHERE table_name = 'user_reviews' 
+      AND action_type = 'INSERT' 
+      ORDER BY id DESC LIMIT 1
+    `);
+
+      if (results.length > 0) {
+        const latest = results[0];
+        for (const client of clients) {
+          client.send(JSON.stringify({
+            event: 'newUserReview',
+            data: latest,
+          }));
+        }
+        await sequelize.query(
+          "DELETE FROM review_user_change_log WHERE id = ?",
+          { replacements: [latest.id] }
+        );
+     return latest; 
+    }
+
+    return null;
+    } catch (err) {
+      console.error('Polling error:', err);
+    }
+  }, 3000);
+
+
+  setInterval(async () => {
+  try {
+    const [results] = await sequelize.query(`
+      SELECT 
+        ucl.*,
+        JSON_UNQUOTE(JSON_EXTRACT(ucl.payload, '$.notification_id')) AS notif_id,
+        n.* 
+      FROM user_notification_change_log ucl
+      LEFT JOIN notifications n 
+        ON JSON_UNQUOTE(JSON_EXTRACT(ucl.payload, '$.notification_id')) = n.id
+      WHERE ucl.table_name = 'user_notifications' 
+        AND ucl.action_type = 'INSERT'
+      ORDER BY ucl.id DESC 
+      LIMIT 1
+    `);
+
+    if (results.length > 0) {
+      const latest = results[0];
+
+      for (const client of clients) {
+        client.send(JSON.stringify({
+          event: 'userNewNotification',
+          data: latest, 
+        }));
+      }
+      await sequelize.query(
+        "DELETE FROM user_notification_change_log WHERE id = ?",
+        { replacements: [latest.id] }
+      );
+
+      return latest;
+    }
+
+    return null;
+  } catch (err) {
+    console.error('Polling error:', err);
+  }
+}, 3000);
+
+
   socket.on('close', () => {
     console.log('🔴 WebSocket connection closed');
+    clients.delete(socket);
   });
 });
 

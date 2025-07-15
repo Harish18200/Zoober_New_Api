@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
+const Suggestion = require('./Suggestion');
 
 const Vehicle = sequelize.define('vehicles', {
     id: {
@@ -8,6 +9,10 @@ const Vehicle = sequelize.define('vehicles', {
         primaryKey: true,
     },
     ride_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+     suggestion_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
@@ -58,4 +63,9 @@ const Vehicle = sequelize.define('vehicles', {
     timestamps: false,
 });
 
+
+Vehicle.belongsTo(Suggestion, {
+    foreignKey: 'suggestion_id',
+    as: 'suggestions'
+});
 module.exports = Vehicle;

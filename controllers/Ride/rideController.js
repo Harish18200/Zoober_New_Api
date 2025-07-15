@@ -18,12 +18,6 @@ const OrderHistory = require('../../models/OrderHistory');
 const DocumentType = require('../../models/DocumentType');
 
 const moment = require('moment');
-
-
-
-
-
-
 const JWT_SECRET = process.env.JWT_SECRET || 'ZooberRide';
 exports.rideSignUp = async (req, res) => {
     const { firstname, lastname, email, mobile, gender, dob, password, status, latitude, longitude, location, ride_status } = req.body;
@@ -385,12 +379,12 @@ exports.rideDashboard = async (req, res) => {
 };
 
 exports.addVehicle = async (req, res) => {
-    const { ride_id, brand, model, model_year, license_plate, color, booking_type } = req.body;
+    const { ride_id, brand, model, model_year, license_plate, color, booking_type, suggestion_id } = req.body;
 
-    if (!ride_id || !brand || !model || !model_year || !license_plate || !booking_type) {
+    if (!ride_id || !brand || !model || !model_year || !license_plate || !booking_type || !suggestion_id) {
         return res.status(400).json({
             success: false,
-            message: 'rideId, brand, model, model_year, license_plate, and booking_type are required.'
+            message: 'rideId, brand, model, model_year, license_plate,  Suggestion_id and booking_type are required.'
         });
     }
 
@@ -411,7 +405,8 @@ exports.addVehicle = async (req, res) => {
             license_plate,
             color,
             booking_type,
-            status
+            status,
+            suggestion_id
         });
 
         const savedVehicle = await newVehicle.save();
@@ -491,13 +486,51 @@ exports.rideVehicleList = async (req, res) => {
 
     try {
         const vehicleList = await Vehicle.findAll({
-            where: { ride_id: ride_id }
+            where: { ride_id: ride_id },
+            attributes: [
+                'id',
+                'ride_id',
+                'brand',
+                'model',
+                'model_year',
+                'license_plate',
+                'color',
+                'status',
+                'booking_type'
+            ],
+            include: [
+                {
+                    model: Suggestion,
+                    as: 'suggestions',
+                    required: false,
+                    where: {
+                        deleted_at: null
+                    },
+                    attributes: ['name']
+                }
+            ]
+        });
+        const formattedVehicles = vehicleList.map(vehicle => {
+            const v = vehicle.toJSON();
+
+            return {
+                id: v.id,
+                ride_id: v.ride_id,
+                brand: v.brand,
+                model: v.model,
+                model_year: v.model_year,
+                license_plate: v.license_plate,
+                color: v.color,
+                status: v.status,
+                booking_type: v.booking_type,
+                suggestionName: v.suggestions ? v.suggestions.name : null
+            };
         });
 
         return res.status(200).json({
             success: true,
             message: 'Vehicle list retrieved successfully',
-            data: vehicleList
+            data: formattedVehicles
         });
 
     } catch (error) {
@@ -507,6 +540,7 @@ exports.rideVehicleList = async (req, res) => {
             message: 'Server error while fetching vehicle list'
         });
     }
+
 };
 exports.addDocument = async (req, res) => {
     const { ride_id, card_number, expired_date, name, document_type_id } = req.body;
@@ -551,74 +585,78 @@ exports.addDocument = async (req, res) => {
 };
 
 exports.listDocument = async (req, res) => {
-  const { ride_id } = req.body;
+    const { ride_id } = req.body;
 
-  if (!ride_id) {
-    return res.status(400).json({
-      success: false,
-      message: 'ride_id is required.'
-    });
-  }
+    if (!ride_id) {
+        return res.status(400).json({
+            success: false,
+            message: 'ride_id is required.'
+        });
+    }
 
-  try {
-    const fetchDocument = await Document.findAll({
-      where: {
-        ride_id: ride_id,
-        deleted_at: null
-      },
-      attributes: [
-        'id',
-        'ride_id',
-        'document_type_id',
-        'admin_approval_status',
-        'back_side_file_path',
-        'card_number',
-        'expired_date',
-        'status'
-      ],
-      include: [
-        {
-          model: DocumentType,
-          as: 'documentType',
-          required: false,
-          where: {
-            deleted_at: null,
-            status: 1
-          },
-          attributes: ['type_name']
-        }
-      ]
-    });
+    try {
+        const fetchDocument = await Document.findAll({
+            where: {
+                ride_id: ride_id,
+                deleted_at: null
+            },
+            attributes: [
+                'id',
+                'ride_id',
+                'document_type_id',
+                'admin_approval_status',
+                'front_side_file_path',
+                'back_side_file_path',
+                'card_number',
+                'expired_date',
+                'status'
+            ],
+            include: [
+                {
+                    model: DocumentType,
+                    as: 'documentType',
+                    required: false,
+                    where: {
+                        deleted_at: null,
+                        status: 1
+                    },
+                    attributes: ['type_name']
+                }
+            ]
+        });
 
-    const baseUrl = "https://zoober.ackrock.com/upload/documents/";
+        const baseUrl = "https://zoober.ackrock.com/upload/documents/";
 
-    const updatedDocuments = fetchDocument.map(doc => ({
-      id: doc.id,
-      ride_id: doc.ride_id,
-      document_type_id: doc.document_type_id,
-      admin_approval_status: doc.admin_approval_status,
-      back_side_file_path: doc.back_side_file_path
-        ? baseUrl + doc.back_side_file_path.replace(/^upload[\\/]+documents[\\/]+/, '')
-        : null,
-      card_number: doc.card_number,
-      expired_date: doc.expired_date,
-      status: doc.status,
-      type_name: doc.documentType?.type_name || null
-    }));
+        const updatedDocuments = fetchDocument.map(doc => ({
+            id: doc.id,
+            ride_id: doc.ride_id,
+            document_type_id: doc.document_type_id,
+            admin_approval_status: doc.admin_approval_status,
+            back_side_file_path: doc.back_side_file_path
+                ? baseUrl + doc.back_side_file_path.replace(/^upload[\\/]+documents[\\/]+/, '')
+                : null,
+            front_side_file_path: doc.front_side_file_path
+                ? baseUrl + doc.front_side_file_path.replace(/^upload[\\/]+documents[\\/]+/, '')
+                : null,
+            card_number: doc.card_number,
+            expired_date: doc.expired_date,
+            status: doc.status,
+            type_name: doc.documentType?.type_name || null
+        }));
 
-    return res.status(200).json({
-      success: true,
-      message: 'Documents fetched successfully',
-      data: updatedDocuments
-    });
+        return res.status(200).json({
+            success: true,
+            message: 'Documents fetched successfully',
+            data: updatedDocuments
+        });
 
-  } catch (error) {
-    console.error('Error fetching documents:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error while fetching documents'
-    });
-  }
+    } catch (error) {
+        console.error('Error fetching documents:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while fetching documents'
+        });
+    }
 };
 
 exports.getOrderDetailById = async (req, res) => {
@@ -653,6 +691,19 @@ exports.getOrderDetailById = async (req, res) => {
         });
     }
 };
+function addDurations(duration1, duration2) {
+    const [h1, m1] = duration1.split(':').map(Number);
+    const [h2, m2] = duration2.split(':').map(Number);
+
+    let totalMinutes = (h1 * 60 + m1) + (h2 * 60 + m2);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    const pad = (num) => num.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}`;
+}
+
+
 exports.completedBookingRide = async (req, res) => {
     const { orderId, rideId } = req.body;
     if (!orderId) {
@@ -689,17 +740,19 @@ exports.completedBookingRide = async (req, res) => {
 
         const distance = parseFloat(orderDetail.distance || 0);
         const amount = parseFloat(orderDetail.amount || 0);
-
+        const duration = orderDetail.duration || '00:00';
         if (rideDetails) {
             const updatedRideCount = (parseFloat(rideDetails.total_ride) || 0) + 1;
             const updatedDistance = (parseFloat(rideDetails.total_kilometer) || 0) + distance;
             const updatedEarnings = (parseFloat(rideDetails.earning) || 0) + amount;
-
+            const existingDuration = rideDetails.total_hours || '00:00';
+            const updatedHours = addDurations(existingDuration, duration);
             await RideDetails.update(
                 {
                     total_ride: updatedRideCount,
                     total_kilometer: updatedDistance,
-                    earning: updatedEarnings
+                    earning: updatedEarnings,
+                    total_hours: updatedHours
                 },
                 {
                     where: { ride_id: rideId }
@@ -710,7 +763,9 @@ exports.completedBookingRide = async (req, res) => {
                 ride_id: rideId,
                 total_ride: 1,
                 total_kilometer: distance,
-                earning: amount
+                earning: amount,
+               total_hours: duration
+
             });
         }
 

@@ -37,7 +37,7 @@ const userReview = sequelize.define('user_reviews', {
         defaultValue: DataTypes.NOW
     },
     deleted_at: {
-        type: DataTypes.NOW,
+        type: DataTypes.DATE,
         allowNull: true,
     },
 }, {
