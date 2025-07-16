@@ -74,6 +74,8 @@ router.post('/completedBookingRide', rideController.completedBookingRide);
 router.post('/OrderCompletedChangeStatus', rideController.OrderCompletedChangeStatus);
 router.post('/retreiveAmountByUserId', rideController.retreiveAmountByUserId);
 router.get('/documentTypes', rideController.documentTypes);
+router.post('/cancelOrder', rideController.cancelOrder);
+
 
 
 router.post('/activeVehicle', verifyRideToken, rideController.activeVehicle);

@@ -95,7 +95,7 @@ exports.addOrUpdateRideDetails = async (req, res) => {
 
     try {
 
-        const existingRide = await RideDetails.findOne({ where: { id: rideId } });
+        const existingRide = await RideDetails.findOne({ where: { ride_id: rideId } });
 
         let rideDetails;
         if (existingRide) {
@@ -108,10 +108,10 @@ exports.addOrUpdateRideDetails = async (req, res) => {
                     rating,
                     earning
                 },
-                { where: { id: rideId } }
+                { where: { ride_id: rideId } }
             );
 
-            rideDetails = await RideDetails.findOne({ where: { id: rideId } });
+            rideDetails = await RideDetails.findOne({ where: { ride_id: rideId } });
 
             return res.status(200).json({
                 success: true,
@@ -120,7 +120,7 @@ exports.addOrUpdateRideDetails = async (req, res) => {
             });
         } else {
             rideDetails = await RideDetails.create({
-                rideId,
+               ride_id:rideId,
                 ride_uid,
                 total_ride,
                 total_hours,
@@ -180,6 +180,37 @@ exports.documentTypes = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
+
+exports.cancelOrder = async (req, res) => {
+    const { orderId } = req.body;
+
+    try {
+        const [affectedRows] = await OrderBooking.update(
+            {
+                order_status: "Cancelled",
+                order_status_id: 7
+            },
+            {
+                where: {
+                    id: orderId,
+                    deleted_at: null,
+                    deleted_flag: null
+                }
+            }
+        );
+
+        if (affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Order not found or already deleted' });
+        }
+
+        return res.status(200).json({ success: true, message: 'Order cancelled successfully' });
+
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
 exports.totalActiveDrivers = async (req, res) => {
     try {
         const totalDriverCount = await Ride.count({

@@ -16,6 +16,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const UserReview = require('./models/UserReview');
 const OrderDetail = require('./models/OrderBookings');
+const OrderBookingChangeLog = require('./models/orderBookingChangeLog');
 const mysql = require('mysql2');
 const Document = require('./models/Document');
 const DocumentType = require('./models/DocumentType');
@@ -483,7 +484,7 @@ wss.on('connection', (socket) => {
 
   setInterval(async () => {
     try {
-  console.log('teah')
+    
       const orders = await OrderBooking.findAll({
         where: { order_status_id: 2 },
         attributes: ['id', 'user_id', 'created_at']
@@ -588,50 +589,114 @@ wss.on('connection', (socket) => {
           "DELETE FROM review_user_change_log WHERE id = ?",
           { replacements: [latest.id] }
         );
-     return latest; 
-    }
+        return latest;
+      }
 
-    return null;
+      return null;
+    } catch (err) {
+      console.error('Polling error:', err);
+    }
+  }, 3000);
+
+  let latestUpdatedId = null;
+
+  setInterval(async () => {
+    try {
+      const latest = await OrderBookingChangeLog.findOne({
+        where: {
+          table_name: 'order_bookings',
+          action_type: ['INSERT', 'UPDATE'],
+        },
+        order: [['id', 'DESC']],
+      });
+      if (latest) {
+        latestUpdatedId = latest.order_id;
+        const retriveRiderId = await OrderHistory.findOne({
+          where: {
+            order_id: latestUpdatedId,
+          },
+        });
+
+        let retriveRiderDetails = null;
+
+        if (retriveRiderId?.ride_id) {
+          retriveRiderDetails = await Ride.findOne({
+            where: {
+              id: retriveRiderId.ride_id,
+            },
+          });
+        }
+
+        for (const client of clients) {
+          const responseData = {
+            event: 'OrderBookingUpdates',
+            data: {
+              payload: latest?.payload ? JSON.parse(latest.payload) : null,
+            },
+          };
+
+          if (retriveRiderDetails) {
+            responseData.data.retriveRiderDetails = retriveRiderDetails;
+          }
+
+          client.send(JSON.stringify(responseData));
+        }
+        await OrderBookingChangeLog.destroy({
+          where: {
+            id: latest.id,
+          },
+        });
+      }
+
+      return null;
     } catch (err) {
       console.error('Polling error:', err);
     }
   }, 3000);
 
 
+
+
   setInterval(async () => {
   try {
     const [results] = await sequelize.query(`
       SELECT 
-        ucl.*,
+        ucl.id AS change_log_id,
+        ucl.payload,
         JSON_UNQUOTE(JSON_EXTRACT(ucl.payload, '$.notification_id')) AS notif_id,
-        n.* 
+        n.*
       FROM user_notification_change_log ucl
       LEFT JOIN notifications n 
         ON JSON_UNQUOTE(JSON_EXTRACT(ucl.payload, '$.notification_id')) = n.id
       WHERE ucl.table_name = 'user_notifications' 
         AND ucl.action_type = 'INSERT'
-      ORDER BY ucl.id DESC 
+      ORDER BY ucl.id ASC 
       LIMIT 1
     `);
 
     if (results.length > 0) {
       const latest = results[0];
 
+      // Delete BEFORE broadcasting to avoid re-processing
+      const [deleteResult] = await sequelize.query(
+        `DELETE FROM user_notification_change_log WHERE id = ?`,
+        { replacements: [latest.change_log_id] }
+      );
+
+      if (deleteResult.affectedRows === 0) {
+        console.warn(`Failed to delete change log with id ${latest.change_log_id}`);
+        return;
+      }
+
+      // Then broadcast to all clients
       for (const client of clients) {
         client.send(JSON.stringify({
           event: 'userNewNotification',
-          data: latest, 
+          data: latest,
         }));
       }
-      await sequelize.query(
-        "DELETE FROM user_notification_change_log WHERE id = ?",
-        { replacements: [latest.id] }
-      );
-
-      return latest;
     }
 
-    return null;
   } catch (err) {
     console.error('Polling error:', err);
   }
@@ -643,9 +708,6 @@ wss.on('connection', (socket) => {
     clients.delete(socket);
   });
 });
-
-
-
 
 app.get('/', (req, res) => {
   res.send('WebSocket server is running!');
