@@ -797,7 +797,7 @@ exports.userLogin = async (req, res) => {
             { expiresIn: '1d' }
         );
 
-       
+
 
 
         return res.status(200).json({
@@ -852,6 +852,114 @@ exports.deviceLocation = async (req, res) => {
             message: 'Server error. Please try again later.',
             error: error.message
         });
+    }
+};
+
+exports.activeProcessingOrder = async (req, res) => {
+    const { userId, rideId } = req.body;
+    console.log('userId', userId)
+
+    try {
+        if (userId) {
+            const userActiveOrder = await OrderDetail.findOne({
+                where: {
+                    user_id: userId,
+                    order_status_id: 4,
+                },
+            });
+
+            if (!userActiveOrder) {
+                return res.status(404).json({ status: false, message: 'No active order found for this user.' });
+            }
+
+            const userRecord = await user.findOne({
+                where: { id: userId },
+            });
+
+            const orderHistoryRecord = await OrderHistory.findOne({
+                where: {
+                    user_id: userId,
+                    order_id: userActiveOrder.id,
+                },
+            });
+
+            let rideRecord = null;
+            if (orderHistoryRecord?.ride_id) {
+                rideRecord = await Ride.findOne({
+                    where: { id: orderHistoryRecord.ride_id },
+                });
+            }
+
+            if (userActiveOrder && userRecord && rideRecord) {
+                return res.json({
+                    status: true,
+                    data: {
+                        order: userActiveOrder,
+                        user: userRecord,
+                        ride: rideRecord,
+                    },
+                });
+            }
+        }
+
+        // --- If rideId is provided ---
+        if (rideId) {
+            const rideDetails = await Ride.findOne({
+                where: { id: rideId },
+            });
+
+            if (!rideDetails) {
+                return res.status(404).json({ status: false, message: 'Ride not found.' });
+            }
+
+            const rideOrderHistories = await OrderHistory.findAll({
+                where: { ride_id: rideId },
+            });
+
+            let rideOrder = null;
+            let rideUser = null;
+
+            for (const history of rideOrderHistories) {
+                const matchingOrder = await OrderDetail.findOne({
+                    where: {
+                        id: history.order_id,
+                        order_status_id: 4,
+                    },
+                });
+
+                if (matchingOrder) {
+                    const matchedUser = await user.findOne({
+                        where: { id: matchingOrder.user_id },
+                    });
+
+                    if (matchedUser) {
+                        rideOrder = matchingOrder;
+                        rideUser = matchedUser;
+                        break; // Stop after the first valid match
+                    }
+                }
+            }
+
+            if (rideDetails && rideOrder && rideUser) {
+                return res.json({
+                    status: true,
+                    data: {
+                        ride: rideDetails,
+                        order: rideOrder,
+                        user: rideUser,
+                    },
+                });
+            }
+
+            return res.status(404).json({ status: false, message: 'No active order with valid user found for this ride.' });
+        }
+
+        // If neither userId nor rideId is provided
+        return res.status(400).json({ status: false, message: 'Either userId or rideId is required.' });
+
+    } catch (error) {
+        console.error('Error in activeProcessingOrder:', error);
+        return res.status(500).json({ status: false, message: 'Server error' });
     }
 };
 
@@ -913,6 +1021,40 @@ exports.logout = async (req, res) => {
     const { userId } = req.body;
 };
 
+exports.userCompletedLocations = async (req, res) => {
+    const { userId } = req.body;
+
+    try {
+        const userPastLocation = await OrderDetail.findAll({
+            where: {
+                user_id: userId,
+                order_status_id: 5
+            }
+        });
+
+        if (userPastLocation.length === 0) {
+            return res.status(200).json({
+                success: false,
+                data: null,
+                message: "No completed orders found for this user."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: userPastLocation
+        });
+
+    } catch (error) {
+        console.error("Error fetching user past locations:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong.",
+            error: error.message
+        });
+    }
+};
+
 exports.favouriteList = async (req, res) => {
     const { userId } = req.body;
 
@@ -951,7 +1093,6 @@ exports.favouriteList = async (req, res) => {
         });
     }
 };
-
 
 exports.addFavourite = async (req, res) => {
     const { userId, title, description } = req.body;
@@ -1409,7 +1550,7 @@ exports.userRidesHistory = async (req, res) => {
 
 exports.sendUserBookingOtp = async (req, res) => {
     try {
-        const { userId, bookingId  ,rideId} = req.body;
+        const { userId, bookingId, rideId } = req.body;
 
         if (!userId) {
             return res.status(400).json({ success: false, message: 'userId is required' });
@@ -1417,7 +1558,7 @@ exports.sendUserBookingOtp = async (req, res) => {
         if (!bookingId) {
             return res.status(400).json({ success: false, message: 'bookingId is required' });
         }
-         if (!rideId) {
+        if (!rideId) {
             return res.status(400).json({ success: false, message: 'rideId is required' });
         }
 
@@ -1463,7 +1604,7 @@ exports.sendUserBookingOtp = async (req, res) => {
             {
                 otp: random5Digit,
                 otp_status: '1',
-                order_status: 'OTP Processing', 
+                order_status: 'OTP Processing',
                 order_status_id: 3
             },
             {

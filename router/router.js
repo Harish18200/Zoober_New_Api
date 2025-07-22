@@ -55,6 +55,11 @@ router.post('/driverDatewiseHistory', rideController.driverDatewiseHistory);
 router.post('/userSignUp', userController.userSignUp);
 router.post('/userLogin', userController.userLogin);
 
+router.post('/activeProcessingOrder', userController.activeProcessingOrder);
+router.post('/userCompletedLocations', userController.userCompletedLocations);
+
+
+
 
 
 

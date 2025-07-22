@@ -248,7 +248,7 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
       if (!exists) {
         return {
           success: false,
-          message: `Missing document for type: ${docType.type_name}`
+          message: `You have not submitted your documents such as Aadhar, License, and RC Book. Please submit them on a priority basis.`
         };
       }
     }
@@ -373,13 +373,7 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
     };
   }
 }
-
-
-
-
 const clients = new Set();
-
-
 wss.on('connection', (socket) => {
   console.log('🟢 WebSocket connected');
   clients.add(socket);
@@ -484,7 +478,7 @@ wss.on('connection', (socket) => {
 
   setInterval(async () => {
     try {
-    
+
       const orders = await OrderBooking.findAll({
         where: { order_status_id: 2 },
         attributes: ['id', 'user_id', 'created_at']
@@ -568,6 +562,7 @@ wss.on('connection', (socket) => {
   }, 1000);
 
 
+
   setInterval(async () => {
     try {
       const [results] = await sequelize.query(`
@@ -597,6 +592,13 @@ wss.on('connection', (socket) => {
       console.error('Polling error:', err);
     }
   }, 3000);
+
+
+
+
+
+
+
 
   let latestUpdatedId = null;
 
@@ -658,8 +660,8 @@ wss.on('connection', (socket) => {
 
 
   setInterval(async () => {
-  try {
-    const [results] = await sequelize.query(`
+    try {
+      const [results] = await sequelize.query(`
       SELECT 
         ucl.id AS change_log_id,
         ucl.payload,
@@ -674,33 +676,31 @@ wss.on('connection', (socket) => {
       LIMIT 1
     `);
 
-    if (results.length > 0) {
-      const latest = results[0];
+      if (results.length > 0) {
+        const latest = results[0];
+        const [deleteResult] = await sequelize.query(
+          `DELETE FROM user_notification_change_log WHERE id = ?`,
+          { replacements: [latest.change_log_id] }
+        );
 
-      // Delete BEFORE broadcasting to avoid re-processing
-      const [deleteResult] = await sequelize.query(
-        `DELETE FROM user_notification_change_log WHERE id = ?`,
-        { replacements: [latest.change_log_id] }
-      );
+        if (deleteResult.affectedRows === 0) {
+          console.warn(`Failed to delete change log with id ${latest.change_log_id}`);
+          return;
+        }
 
-      if (deleteResult.affectedRows === 0) {
-        console.warn(`Failed to delete change log with id ${latest.change_log_id}`);
-        return;
+        // Then broadcast to all clients
+        for (const client of clients) {
+          client.send(JSON.stringify({
+            event: 'userNewNotification',
+            data: latest,
+          }));
+        }
       }
 
-      // Then broadcast to all clients
-      for (const client of clients) {
-        client.send(JSON.stringify({
-          event: 'userNewNotification',
-          data: latest,
-        }));
-      }
+    } catch (err) {
+      console.error('Polling error:', err);
     }
-
-  } catch (err) {
-    console.error('Polling error:', err);
-  }
-}, 3000);
+  }, 3000);
 
 
   socket.on('close', () => {
