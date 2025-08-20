@@ -333,7 +333,7 @@ exports.rideLogin = async (req, res) => {
 
         const isMatch = await bcrypt.compare(password, rideLogin.password);
         if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Invalid mobile number or password.' });
+            return res.status(401).json({ success: false, message: 'Invalid password.' });
         }
 
         const token = jwt.sign(

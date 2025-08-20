@@ -9,3 +9,5 @@ npm install sequelize
 npm install express
 npm install mysql2
 npm install ws
+npm install --save-dev nodemon
+

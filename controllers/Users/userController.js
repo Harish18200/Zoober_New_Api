@@ -27,21 +27,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 exports.userSignUp = async (req, res) => {
     const {
         mobile,
-        email,
         password,
         firstname,
-        lastname,
-        gender,
-        dob,
-        city,
         userStatusId,
         userStatus
     } = req.body;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-        return res.status(400).json({ success: false, message: 'Invalid email format.' });
-    }
+
 
     const mobileRegex = /^\d{10}$/;
     if (!mobile || !mobileRegex.test(mobile)) {
@@ -57,10 +49,7 @@ exports.userSignUp = async (req, res) => {
     }
 
     try {
-        const existingEmail = await user.findOne({ where: { email } });
-        if (existingEmail) {
-            return res.status(409).json({ success: false, message: 'Email already in use.' });
-        }
+
 
         const existingMobile = await user.findOne({ where: { mobile } });
         if (existingMobile) {
@@ -72,14 +61,9 @@ exports.userSignUp = async (req, res) => {
 
         const newUser = await user.create({
             mobile,
-            email,
             user_uid,
             password: hashedPassword,
             firstname,
-            lastname,
-            gender,
-            dob,
-            city: city || null,
             user_status_id: userStatusId || 1,
             user_status: userStatus || "Approval Pending"
         });
@@ -139,8 +123,6 @@ exports.userSignUp = async (req, res) => {
                 res.status(500).json({ success: false, error: error.message });
             }
         }
-
-
 
 
     } catch (error) {
@@ -774,49 +756,64 @@ exports.userLogin = async (req, res) => {
     try {
         const existingUser = await user.findOne({
             where: {
-                mobile,
-                user_status_id: 2,
-                deleted_flag: null,
-                deleted_at: null
+                mobile
             }
         });
 
         if (!existingUser) {
             return res.status(404).json({
                 success: false,
-                message: 'User not found, has been deleted, or is not approved.',
+                message: 'User not found.'
             });
         }
-        const isMatch = await bcrypt.compare(password, existingUser.password);
-        if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Invalid mobile number or password.' });
+
+
+        if (existingUser.deleted_flag == 1 || existingUser.deleted_at !== null) {
+            return res.status(403).json({
+                success: false,
+                message: 'User has been deleted.'
+            });
         }
-        const token = jwt.sign(
-            { id: existingUser.id, mobile: existingUser.mobile },
-            process.env.JWT_SECRET,
-            { expiresIn: '1d' }
-        );
 
+        if (existingUser.user_status_id === 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'User is not approved.'
+            });
+        }
+        if (existingUser.user_status_id === 2) {
 
-
-
-        return res.status(200).json({
-            success: true,
-            message: 'Login successfully',
-            token,
-            user: {
-                id: existingUser.id,
-                mobile: existingUser.mobile,
-                firstName: existingUser.firstname,
-                user_uid: existingUser.user_uid
+            const isMatch = await bcrypt.compare(password, existingUser.password);
+            if (!isMatch) {
+                return res.status(401).json({ success: false, message: 'Invalid mobile number or password.' });
             }
-        });
+            const token = jwt.sign(
+                { id: existingUser.id, mobile: existingUser.mobile },
+                process.env.JWT_SECRET,
+                { expiresIn: '1d' }
+            );
 
+
+
+
+            return res.status(200).json({
+                success: true,
+                message: 'Login successfully',
+                token,
+                user: {
+                    id: existingUser.id,
+                    mobile: existingUser.mobile,
+                    firstName: existingUser.firstname,
+                    user_uid: existingUser.user_uid
+                }
+            });
+        }
     } catch (error) {
         console.error('Login error:', error);
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
 exports.deviceLocation = async (req, res) => {
     const { user_id, device_location } = req.body;
 
@@ -1852,8 +1849,9 @@ exports.findingNearByDriver = async (req, res) => {
             });
         }
 
-        const drivers = await Ride.findAll({
+        const drivers = await OrderDetail.findAll({
             where: {
+                order_status_id: 2,
                 deleted_flag: null,
                 deleted_at: null
             }
@@ -1872,27 +1870,45 @@ exports.findingNearByDriver = async (req, res) => {
             return R * c;
         };
 
-        const nearbyDrivers = drivers
-            .map(driver => {
-                const distance = getDistance(
-                    parseFloat(userLat),
-                    parseFloat(userLng),
-                    parseFloat(driver.latitude),
-                    parseFloat(driver.longitude)
-                );
-                return {
-                    id: driver.id,
-                    fullname: `${driver.firstname} ${driver.lastname}`,
-                    mobile: driver.mobile,
-                    latitude: driver.latitude,
-                    longitude: driver.longitude,
-                    location: driver.location,
-                    distance: `${distance.toFixed(2)} km`
-                };
-            })
-            .filter(d => parseFloat(d.distance) <= 10) // within 10 km
-            .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
-            .slice(0, 5); // top 5 nearest
+        const calculateNearbyDrivers = (range) => {
+            return drivers
+                .map(driver => {
+                    const distance = getDistance(
+                        parseFloat(userLat),
+                        parseFloat(userLng),
+                        parseFloat(driver.pickup_latitude),
+                        parseFloat(driver.pickup_longitude)
+                    );
+                    return {
+                        id: driver.id,
+                        fullname: `${driver.firstname} ${driver.lastname}`,
+                        mobile: driver.mobile,
+                        latitude: driver.latitude,
+                        longitude: driver.longitude,
+                        location: driver.location,
+                        distance: distance
+                    };
+                })
+                .filter(d => d.distance <= range)
+                .sort((a, b) => a.distance - b.distance)
+                .map(d => ({
+                    ...d,
+                    distance: `${d.distance.toFixed(2)} km`
+                }));
+        };
+
+        let nearbyDrivers = calculateNearbyDrivers(3);
+
+        if (nearbyDrivers.length === 0) {
+            nearbyDrivers = calculateNearbyDrivers(5);
+        }
+
+        if (nearbyDrivers.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No nearby drivers found within 5 km.'
+            });
+        }
 
         return res.status(200).json({
             success: true,
@@ -1909,6 +1925,7 @@ exports.findingNearByDriver = async (req, res) => {
         });
     }
 };
+
 
 exports.recentRides = async (req, res) => {
     try {

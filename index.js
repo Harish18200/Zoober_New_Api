@@ -207,70 +207,49 @@ async function userOrderAccpetedDriverDetails(userId) {
     };
   }
 }
+
 async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitude, location) {
-  if (!rideId) {
-    return { success: false, message: 'RideId is required.' };
-  }
-
-  if (!latitude) {
-    return { success: false, message: 'latitude is required.' };
-  }
-
-  if (!longitude) {
-    return { success: false, message: 'longitude is required.' };
-  }
-
-  if (!rideStatus) {
-    return { success: false, message: 'rideStatus is required.' };
-  }
-
-  if (!location) {
-    return { success: false, message: 'location is required.' };
+  if (!rideId || !latitude || !longitude || !rideStatus || !location) {
+    return { success: false, message: 'All fields (rideId, rideStatus, latitude, longitude, location) are required.' };
   }
 
   try {
     const existingRide = await Ride.findOne({ where: { id: rideId } });
-
     if (!existingRide) {
       return { success: false, message: 'Ride not found.' };
     }
-    const msterDoc = await DocumentType.findAll({ where: { status: 1 } });
-    if (!msterDoc || msterDoc.length === 0) {
+
+    const masterDocs = await DocumentType.findAll({ where: { status: 1 } });
+    if (!masterDocs || masterDocs.length === 0) {
       return { success: false, message: 'No document types found.' };
     }
-    for (const docType of msterDoc) {
+
+    for (const docType of masterDocs) {
       const exists = await Document.findOne({
-        where: {
-          ride_id: rideId,
-          document_type_id: docType.id
-        }
+        where: { ride_id: rideId, document_type_id: docType.id }
       });
       if (!exists) {
         return {
           success: false,
-          message: `You have not submitted your documents such as Aadhar, License, and RC Book. Please submit them on a priority basis.`
+          message: 'You have not submitted your documents such as Aadhar, License, and RC Book. Please submit them on a priority basis.'
         };
       }
     }
+
+
     await existingRide.update({ latitude, longitude, location });
 
     if (rideStatus === "offline") {
-      const rideRecord = await Ride.findOne({
-        where: { id: rideId },
-        attributes: ['working_hour']
-      });
-
       const offlineTime = new Date();
-      const workingHour = new Date(rideRecord.working_hour);
+      const workingHour = new Date(existingRide.working_hour || offlineTime);
       const addedMinutes = Math.floor((offlineTime - workingHour) / (1000 * 60));
 
+      let totalMinutes = addedMinutes;
       const rideDetail = await RideDetails.findOne({ where: { ride_id: rideId } });
 
-      let totalMinutes = addedMinutes;
-      if (rideDetail && rideDetail.total_hours) {
+      if (rideDetail?.total_hours) {
         const [hours, minutes] = rideDetail.total_hours.split(':').map(Number);
-        const existingMinutes = (hours || 0) * 60 + (minutes || 0);
-        totalMinutes += existingMinutes;
+        totalMinutes += (hours * 60 + minutes);
       }
 
       const finalHours = Math.floor(totalMinutes / 60);
@@ -280,7 +259,7 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
       await Ride.update({ status: rideStatus }, { where: { id: rideId } });
 
       if (rideDetail) {
-        await RideDetails.update({ total_hours: formattedTime }, { where: { ride_id: rideId } });
+        await rideDetail.update({ total_hours: formattedTime });
       } else {
         await RideDetails.create({ ride_id: rideId, total_hours: formattedTime });
       }
@@ -295,19 +274,16 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
     if (rideStatus === "online") {
       await Ride.update({ status: rideStatus, working_hour: new Date() }, { where: { id: rideId } });
 
-
       const activeVehicle = await Vehicle.findOne({
         where: {
           ride_id: rideId,
           status: 1,
-          suggestion_id: {
-            [Op.ne]: null
-          }
+          suggestion_id: { [Op.ne]: null }
         }
-
       });
+
       if (!activeVehicle) {
-        return { success: false, message: 'Vehicle  not found.' };
+        return { success: false, message: 'Vehicle not found.' };
       }
 
       const bookingList = await OrderBooking.findAll({
@@ -317,18 +293,58 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
           deleted_flag: null,
           deleted_at: null
         },
-        include: [
-          {
-            model: User,
-            as: 'users',
-            attributes: ['firstname', 'lastname', 'mobile', 'profile', 'email', 'gender', 'dob', 'user_status']
-          }
-        ],
+        include: [{
+          model: User,
+          as: 'users',
+          attributes: ['firstname', 'lastname', 'mobile', 'profile', 'email', 'gender', 'dob', 'user_status']
+        }],
         raw: true,
         nest: true
       });
 
-      const filteredOrders = bookingList.map(order => ({
+      const getDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+          Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      };
+
+      const calculateNearbyOrders = (range) => {
+        return bookingList
+          .map(list => {
+            const distance = getDistance(
+              parseFloat(list.pickup_latitude),
+              parseFloat(list.pickup_longitude),
+              parseFloat(latitude),
+              parseFloat(longitude),
+            );
+            return { ...list, distance };
+          })
+          .filter(d => d.distance <= range)
+          .sort((a, b) => a.distance - b.distance)
+          .map(d => ({
+            ...d,
+            distance: `${d.distance.toFixed(2)} km`
+          }));
+      };
+
+      let nearbyOrders = calculateNearbyOrders(3);
+      if (nearbyOrders.length === 0) {
+        nearbyOrders = calculateNearbyOrders(5);
+      }
+
+      if (nearbyOrders.length === 0) {
+        return {
+          success: false,
+          message: 'No nearby bookings found within 5 km.'
+        };
+      }
+
+      const filteredOrders = nearbyOrders.map(order => ({
         order_id: order.id,
         user_id: order.user_id,
         distance: order.distance,
@@ -373,6 +389,7 @@ async function markDriverStatusAndUpdated(rideId, rideStatus, latitude, longitud
     };
   }
 }
+
 const clients = new Set();
 wss.on('connection', (socket) => {
   console.log('🟢 WebSocket connected');
